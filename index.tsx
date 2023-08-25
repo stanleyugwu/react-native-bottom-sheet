@@ -47,6 +47,9 @@ export interface BottomSheetMethods {
   close(): void;
 }
 
+// short hand for toValue key of animation
+type ToValue = Animated.TimingAnimationConfig['toValue'];
+
 /**
  * Main bottom sheet component
  */
@@ -74,44 +77,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     useImperativeHandle(ref, () => ({
       open() {
-        _animatedTranslateY.setValue(0);
-        const DEFAULT_DURATION = 500;
-        Animated.timing(_animatedContainerHeight, {
-          toValue: containerHeight,
-          useNativeDriver: false,
-          duration: 0,
-        }).start();
-        Animated.timing(_animatedBackdropMaskOpacity, {
-          toValue: 1,
-          useNativeDriver: false,
-          duration: 300,
-        }).start();
-        if (animationType == ANIMATIONS.SLIDE) {
-          Animated.timing(_animatedHeight, {
-            toValue: convertedHeight,
-            useNativeDriver: false,
-            duration: DEFAULT_DURATION,
-            easing(value) {
-              return value === 1 ? 1 : 1 - Math.pow(2, -10 * value);
-            },
-          }).start();
-        } else {
-          Animated.timing(_animatedHeight, {
-            toValue: convertedHeight,
-            useNativeDriver: false,
-            duration: DEFAULT_DURATION + 300,
-            easing(value) {
-              const c4 = (2 * Math.PI) / 2.5;
-
-              return value === 0
-                ? 0
-                : value === 1
-                ? 1
-                : Math.pow(2, -10 * value) * Math.sin((value * 5 - 0.75) * c4) +
-                  1;
-            },
-          }).start();
-        }
+        openBottomSheet();
       },
       close() {
         closeBottomSheet();
@@ -175,7 +141,6 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             // to makes the backdrop more transparent as you drag the content sheet down
             const relativeOpacity = 1 - gestureState.dy / convertedHeight;
             _animatedBackdropMaskOpacity.setValue(relativeOpacity);
-            console.log(relativeOpacity);
 
             Animated.event([null, {dy: _animatedTranslateY}], {
               useNativeDriver: false,
@@ -184,64 +149,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         },
         onPanResponderRelease(e, gestureState) {
           if (gestureState.dy >= convertedHeight / 3 && closeOnDragDown) {
-            Animated.timing(_animatedBackdropMaskOpacity, {
-              toValue: 0,
-              useNativeDriver: false,
-              duration: 300,
-            }).start();
-            Animated.timing(_animatedContainerHeight, {
-              toValue: 0,
-              useNativeDriver: false,
-              duration: 0,
-            }).start();
-            Animated.timing(_animatedHeight, {
-              toValue: 0,
-              useNativeDriver: false,
-              duration: 500,
-              easing:
-                animationType == ANIMATIONS.SLIDE
-                  ? value => {
-                      return value === 1 ? 1 : 1 - Math.pow(2, -10 * value);
-                    }
-                  : value => {
-                      const c4 = (2 * Math.PI) / 2.5;
-
-                      return value === 0
-                        ? 0
-                        : value === 1
-                        ? 1
-                        : Math.pow(2, -10 * value) *
-                            Math.sin((value * 5 - 0.75) * c4) +
-                          1;
-                    },
-            }).start();
+            animators.animateBackdropMaskOpacity(0).start();
+            animators.animateHeight(0).start();
+            animators.animateContainerHeight(0).start();
           } else {
-            Animated.timing(_animatedBackdropMaskOpacity, {
-              toValue: 1,
-              useNativeDriver: false,
-              duration: 500,
-            }).start();
-            Animated.timing(_animatedTranslateY, {
-              toValue: 0,
-              useNativeDriver: false,
-              duration: 500,
-              easing:
-                animationType == ANIMATIONS.SLIDE
-                  ? value => {
-                      return value === 1 ? 1 : 1 - Math.pow(2, -10 * value);
-                    }
-                  : value => {
-                      const c4 = (2 * Math.PI) / 2.5;
-
-                      return value === 0
-                        ? 0
-                        : value === 1
-                        ? 1
-                        : Math.pow(2, -10 * value) *
-                            Math.sin((value * 5 - 0.75) * c4) +
-                          1;
-                    },
-            }).start();
+            animators.animateBackdropMaskOpacity(1).start();
+            animators.animateTranslateY(0).start();
           }
         },
       }).panHandlers;
@@ -287,67 +200,79 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       [],
     );
 
-    // animation helpers
-    const animateBackdropOpacity = (toValue: number) =>
-      Animated.timing(_animatedBackdropMaskOpacity, {
-        toValue: toValue,
-        useNativeDriver: false,
-        duration: 200,
-      });
-
-    const animateContentWrapper = (toValue: number) => {
-      return animationType == ANIMATIONS.SLIDE
-        ? Animated.timing(_animatedHeight, {
-            toValue,
-            useNativeDriver: false,
-            duration: 300,
-            easing(value) {
-              return value === 1 ? 1 : 1 - Math.pow(2, -10 * value);
-            },
-          })
-        : Animated.spring(_animatedHeight, {
-            toValue,
-            damping: 20,
-            stiffness: 500,
-            velocity: 3000,
-            useNativeDriver: false,
-          });
-    };
-
-    const animateContainerHeight = (toValue: number) =>
-      Animated.timing(_animatedContainerHeight, {
-        toValue: toValue,
-        useNativeDriver: false,
-        duration: 50,
-      });
-
+    /**
+     * Expands the bottom sheet.\
+     * The flow/steps of the bottom sheet animation is:
+     * 1. The container enters the screen (slide-in) by animating it's height to that of screen
+     * 2. It's opacity animates to 1 from 0
+     * 3. The content container animates it's height from 0 to calculated height prop
+     */
     const openBottomSheet = () => {
-      /**
-       * The flow/steps of the bottom sheet animation is:
-       * 1. The container enters the screen (slide-in) by animating it's height to that of screen
-       * 2. It's opacity animates to 1 from 0
-       * 3. The content container animates it's height from 0 to calculated height prop
-       */
+      // we need to reset this after bottom sheet
+      // would've been panned down below screen height to close
       _animatedTranslateY.setValue(0);
 
-      Animated.spring(_animatedHeight, {
-        toValue: convertedHeight,
-        useNativeDriver: false,
-        damping: 20,
-        stiffness: 400,
-        velocity: 3000,
-      }).start();
-      // animateContainerHeight(containerHeight).start();
-      // Animated.parallel([
-      //   animateBackdropOpacity(1),
-      //   animateContentWrapper(convertedHeight),
-      // ]).start();
+      animators.animateContainerHeight(containerHeight).start();
+      animators.animateBackdropMaskOpacity(1).start();
+      animators.animateHeight(convertedHeight).start();
     };
 
     const closeBottomSheet = () => {
-      animateBackdropOpacity(0).start();
-      animateContentWrapper(0).start();
-      animateContainerHeight(0).start();
+      animators.animateBackdropMaskOpacity(0).start();
+      animators.animateHeight(0).start();
+      animators.animateContainerHeight(0).start();
+    };
+
+    const animators = {
+      _slideEasingFn(value: number) {
+        return value === 1 ? 1 : 1 - Math.pow(2, -10 * value);
+      },
+      _springEasingFn(value: number) {
+        const c4 = (2 * Math.PI) / 2.5;
+        return value === 0
+          ? 0
+          : value === 1
+          ? 1
+          : Math.pow(2, -10 * value) * Math.sin((value * 5 - 0.75) * c4) + 1;
+      },
+      animateContainerHeight(toValue: ToValue) {
+        return Animated.timing(_animatedContainerHeight, {
+          toValue: toValue,
+          useNativeDriver: false,
+          duration: 50,
+        });
+      },
+      animateBackdropMaskOpacity(toValue: ToValue) {
+        return Animated.timing(_animatedBackdropMaskOpacity, {
+          toValue: toValue,
+          useNativeDriver: false,
+          duration: 200,
+        });
+      },
+      animateHeight(toValue: ToValue) {
+        const DEFAULT_DURATION = 500;
+        return Animated.timing(_animatedHeight, {
+          toValue,
+          useNativeDriver: false,
+          duration: DEFAULT_DURATION,
+          easing:
+            animationType == ANIMATIONS.SLIDE
+              ? this._slideEasingFn
+              : this._springEasingFn,
+        });
+      },
+      animateTranslateY(toValue: ToValue) {
+        const DEFAULT_DURATION = 500;
+        return Animated.timing(_animatedTranslateY, {
+          toValue,
+          useNativeDriver: false,
+          duration: DEFAULT_DURATION,
+          easing:
+            animationType == ANIMATIONS.SLIDE
+              ? this._slideEasingFn
+              : this._springEasingFn,
+        });
+      },
     };
 
     const containerViewLayoutHandler = (event: LayoutChangeEvent) => {
