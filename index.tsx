@@ -34,6 +34,7 @@ import convertHeight from './utils/convertHeight';
 export enum ANIMATIONS {
   SLIDE = 'slide',
   SPRING = 'spring',
+  FADE = 'fade',
 }
 
 /**
@@ -147,7 +148,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             // to makes the backdrop more transparent as you drag the content sheet down
             const relativeOpacity = 1 - gestureState.dy / convertedHeight;
             _animatedBackdropMaskOpacity.setValue(relativeOpacity);
-            _animatedHeight.setValue(convertedHeight - gestureState.dy);
+            animationType != ANIMATIONS.FADE &&
+              _animatedHeight.setValue(convertedHeight - gestureState.dy);
           }
         },
         onPanResponderRelease(e, gestureState) {
@@ -155,7 +157,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             closeBottomSheet();
           } else {
             _animatedBackdropMaskOpacity.setValue(1);
-            animators.animateHeight(convertedHeight).start();
+            animationType != ANIMATIONS.FADE &&
+              animators.animateHeight(convertedHeight).start();
           }
         },
       }).panHandlers;
@@ -204,17 +207,27 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const openBottomSheet = () => {
       animators.animateContainerHeight(containerHeight).start();
       animators.animateBackdropMaskOpacity(1).start();
-      animators.animateHeight(convertedHeight).start(f => {
-        if (f.finished) sheetOpen.current = true;
-      });
+      animationType != ANIMATIONS.FADE &&
+        animators.animateHeight(convertedHeight).start(anim => {
+          if (anim.finished) sheetOpen.current = true;
+        });
     };
 
     const closeBottomSheet = () => {
-      animators.animateBackdropMaskOpacity(0).start();
-      animators.animateHeight(0).start();
-      animators.animateContainerHeight(0).start(anim => {
-        if (anim.finished) sheetOpen.current = false;
-      });
+      if (animationType == ANIMATIONS.FADE) {
+        Animated.sequence([
+          animators.animateBackdropMaskOpacity(0),
+          animators.animateContainerHeight(0),
+        ]).start(anim => {
+          if (anim.finished) sheetOpen.current = false;
+        });
+      } else {
+        animators.animateBackdropMaskOpacity(0).start();
+        animators.animateContainerHeight(0).start(anim => {
+          if (anim.finished) sheetOpen.current = false;
+        });
+        animators.animateHeight(0).start();
+      }
     };
 
     const animators = {
@@ -343,8 +356,17 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               styles.contentContainer,
               contentContainerStyle,
               {
-                height: _animatedHeight,
+                height:
+                  animationType == ANIMATIONS.FADE ? height : _animatedHeight,
                 minHeight: _animatedHeight,
+                opacity:
+                  animationType == ANIMATIONS.FADE
+                    ? _animatedBackdropMaskOpacity.interpolate({
+                        inputRange: [0, 0.5, 1],
+                        outputRange: [0, 0.3, 1],
+                        extrapolate: 'clamp',
+                      })
+                    : contentContainerStyle?.opacity,
                 transform: [
                   ...(contentContainerStyle?.transform || []),
                   {translateY: _animatedTranslateY}, // non-overridable,
