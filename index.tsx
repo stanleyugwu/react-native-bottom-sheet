@@ -14,6 +14,7 @@ import {
   StyleSheet,
   LayoutChangeEvent,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import {
   DEFAULT_ANIMATION,
@@ -91,9 +92,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * else, it may be a percentage value so then we need to change it to a number (so it can be animated).
      * The change is handled with `onLayout` further down
      */
-    const DEFAULT_CONTAINER_HEIGHT = Dimensions.get('window').height; // actual container height is measured after layout
+    const SCREEN_HEIGHT = useWindowDimensions().height; // actual container height is measured after layout
     const [containerHeight, setContainerHeight] = useState(
-      DEFAULT_CONTAINER_HEIGHT,
+      SCREEN_HEIGHT,
     );
 
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -283,18 +284,19 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     /**
      * Handles auto adjusting container view height and clamping
-     * and normalizing containerHeight prop upon change, if its a number
+     * and normalizing `containerHeight` prop upon change, if its a number.
+     * Also auto adjusts when orientation changes
      */
     useEffect(() => {
       if (typeof passedContainerHeight == 'number') {
         setContainerHeight(normalizeHeight(passedContainerHeight));
         sheetOpen && _animatedContainerHeight.setValue(passedContainerHeight);
       } else if (typeof passedContainerHeight == 'undefined') {
-        setContainerHeight(DEFAULT_CONTAINER_HEIGHT);
+        setContainerHeight(SCREEN_HEIGHT);
         sheetOpen &&
-          _animatedContainerHeight.setValue(DEFAULT_CONTAINER_HEIGHT);
+          _animatedContainerHeight.setValue(SCREEN_HEIGHT);
       }
-    }, [passedContainerHeight, sheetOpen]);
+    }, [passedContainerHeight, sheetOpen, SCREEN_HEIGHT]);
 
     return (
       <>
