@@ -141,20 +141,18 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             // to makes the backdrop more transparent as you drag the content sheet down
             const relativeOpacity = 1 - gestureState.dy / convertedHeight;
             _animatedBackdropMaskOpacity.setValue(relativeOpacity);
-
-            Animated.event([null, {dy: _animatedTranslateY}], {
-              useNativeDriver: false,
-            })(e, gestureState);
+            _animatedHeight.setValue(convertedHeight - gestureState.dy);
+            // Animated.event([null, {dy: _animatedTranslateY}], {
+            //   useNativeDriver: false,
+            // })(e, gestureState);
           }
         },
         onPanResponderRelease(e, gestureState) {
           if (gestureState.dy >= convertedHeight / 3 && closeOnDragDown) {
-            animators.animateBackdropMaskOpacity(0).start();
-            animators.animateHeight(0).start();
-            animators.animateContainerHeight(0).start();
+            closeBottomSheet();
           } else {
-            animators.animateBackdropMaskOpacity(1).start();
-            animators.animateTranslateY(0).start();
+            _animatedBackdropMaskOpacity.setValue(1);
+            animators.animateHeight(convertedHeight).start();
           }
         },
       }).panHandlers;
@@ -208,10 +206,6 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * 3. The content container animates it's height from 0 to calculated height prop
      */
     const openBottomSheet = () => {
-      // we need to reset this after bottom sheet
-      // would've been panned down below screen height to close
-      _animatedTranslateY.setValue(0);
-
       animators.animateContainerHeight(containerHeight).start();
       animators.animateBackdropMaskOpacity(1).start();
       animators.animateHeight(convertedHeight).start();
@@ -233,7 +227,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           ? 0
           : value === 1
           ? 1
-          : Math.pow(2, -10 * value) * Math.sin((value * 5 - 0.75) * c4) + 1;
+          : Math.pow(2, -9 * value) * Math.sin((value * 4.5 - 0.75) * c4) + 1;
       },
       animateContainerHeight(toValue: ToValue) {
         return Animated.timing(_animatedContainerHeight, {
@@ -254,7 +248,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         return Animated.timing(_animatedHeight, {
           toValue,
           useNativeDriver: false,
-          duration: DEFAULT_DURATION,
+          duration:
+            animationType == ANIMATIONS.SPRING
+              ? DEFAULT_DURATION + 100
+              : DEFAULT_DURATION,
           easing:
             animationType == ANIMATIONS.SLIDE
               ? this._slideEasingFn
