@@ -93,11 +93,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * The change is handled with `onLayout` further down
      */
     const SCREEN_HEIGHT = useWindowDimensions().height; // actual container height is measured after layout
-    const [containerHeight, setContainerHeight] = useState(
-      SCREEN_HEIGHT,
-    );
+    const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
 
-    const [sheetOpen, setSheetOpen] = useState(false);
+    const sheetOpen = useRef(false);
 
     // animated properties
     const _animatedContainerHeight = useRef(new Animated.Value(0)).current;
@@ -116,9 +114,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     const convertedHeight = useMemo(() => {
       const newHeight = convertHeight(height, containerHeight);
-      sheetOpen && _animatedHeight.setValue(newHeight);
+      sheetOpen.current && _animatedHeight.setValue(newHeight);
       return newHeight;
-    }, [containerHeight, height, sheetOpen]);
+    }, [containerHeight, height, sheetOpen.current]);
 
     /**
      * Returns conditioned gesture handlers for content container and handle bar elements
@@ -207,16 +205,16 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       animators.animateContainerHeight(containerHeight).start();
       animators.animateBackdropMaskOpacity(1).start();
       animators.animateHeight(convertedHeight).start(f => {
-        f.finished && setSheetOpen(true);
+        if (f.finished) sheetOpen.current = true;
       });
     };
 
     const closeBottomSheet = () => {
       animators.animateBackdropMaskOpacity(0).start();
       animators.animateHeight(0).start();
-      animators
-        .animateContainerHeight(0)
-        .start(f => f.finished && setSheetOpen(false));
+      animators.animateContainerHeight(0).start(anim => {
+        if (anim.finished) sheetOpen.current = false;
+      });
     };
 
     const animators = {
@@ -290,13 +288,13 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     useEffect(() => {
       if (typeof passedContainerHeight == 'number') {
         setContainerHeight(normalizeHeight(passedContainerHeight));
-        sheetOpen && _animatedContainerHeight.setValue(passedContainerHeight);
+        sheetOpen.current &&
+          _animatedContainerHeight.setValue(passedContainerHeight);
       } else if (typeof passedContainerHeight == 'undefined') {
         setContainerHeight(SCREEN_HEIGHT);
-        sheetOpen &&
-          _animatedContainerHeight.setValue(SCREEN_HEIGHT);
+        sheetOpen.current && _animatedContainerHeight.setValue(SCREEN_HEIGHT);
       }
-    }, [passedContainerHeight, sheetOpen, SCREEN_HEIGHT]);
+    }, [passedContainerHeight, sheetOpen.current, SCREEN_HEIGHT]);
 
     return (
       <>
