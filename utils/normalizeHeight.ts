@@ -1,11 +1,11 @@
-import {useWindowDimensions} from 'react-native';
+import {Dimensions, useWindowDimensions} from 'react-native';
 
 /**
  * Normalizes height to a number and clamps it
  * so it's not bigger that device screen height
  */
 const normalizeHeight = (height?: number | string): number => {
-  const DEVICE_SCREEN_HEIGHT = useWindowDimensions().height;
+  const DEVICE_SCREEN_HEIGHT = Dimensions.get("window").height;
   let clampedHeight = DEVICE_SCREEN_HEIGHT;
   if (typeof height == 'number')
     clampedHeight =

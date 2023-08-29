@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -12,6 +13,7 @@ import {
   PanResponder,
   StyleSheet,
   LayoutChangeEvent,
+  Dimensions,
 } from 'react-native';
 import {
   DEFAULT_ANIMATION,
@@ -89,8 +91,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * else, it may be a percentage value so then we need to change it to a number (so it can be animated).
      * The change is handled with `onLayout` further down
      */
-    const clampedHeight = normalizeHeight(passedContainerHeight);
-    const [containerHeight, setContainerHeight] = useState(clampedHeight);
+    const DEFAULT_CONTAINER_HEIGHT = Dimensions.get('window').height; // actual container height is measured after layout
+    const [containerHeight, setContainerHeight] = useState(
+      DEFAULT_CONTAINER_HEIGHT,
+    );
+
+    const [sheetOpen, setSheetOpen] = useState(false);
 
     // animated properties
     const _animatedContainerHeight = useRef(new Animated.Value(0)).current;
@@ -98,19 +104,20 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const _animatedHeight = useRef(new Animated.Value(0)).current;
     const _animatedTranslateY = useRef(new Animated.Value(0)).current;
 
-    /** ref for `Animated.View` container element */
-    const containerRef = useRef<View>(null);
     /** cached _nativeTag property of content container */
     const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
 
     /**
      * `height` prop converted from percentage e.g `'50%'` to pixel unit e.g `320`,
-     * relative to `containerHeight` or `DEVICE_SCREEN_HEIGHT`
+     * relative to `containerHeight` or `DEVICE_SCREEN_HEIGHT`.
+     * Also auto calculates and adjusts container wrapper height when `containerHeight`
+     * or `height` changes
      */
-    const convertedHeight = useMemo(
-      () => convertHeight(height, containerHeight),
-      [containerHeight, height],
-    );
+    const convertedHeight = useMemo(() => {
+      const newHeight = convertHeight(height, containerHeight);
+      sheetOpen && _animatedHeight.setValue(newHeight);
+      return newHeight;
+    }, [containerHeight, height, sheetOpen]);
 
     /**
      * Returns conditioned gesture handlers for content container and handle bar elements
@@ -142,9 +149,6 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             const relativeOpacity = 1 - gestureState.dy / convertedHeight;
             _animatedBackdropMaskOpacity.setValue(relativeOpacity);
             _animatedHeight.setValue(convertedHeight - gestureState.dy);
-            // Animated.event([null, {dy: _animatedTranslateY}], {
-            //   useNativeDriver: false,
-            // })(e, gestureState);
           }
         },
         onPanResponderRelease(e, gestureState) {
@@ -159,9 +163,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     };
 
     /**
-     * Polymorphic content container handle bar element
+     * Polymorphic content container handle bar component
      */
-    const PolymorphicHandleBar = useMemo(() => {
+    const PolymorphicHandleBar = () => {
       const CustomHandleBar = customHandleBarComponent;
       return hideHandleBar ? null : CustomHandleBar &&
         typeof CustomHandleBar == 'function' ? (
@@ -177,14 +181,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           {...getPanHandlersFor('handlebar')}
         />
       );
-    }, [
-      customHandleBarComponent,
-      disableHandleBarPanning,
-      hideHandleBar,
-      _animatedHeight,
-      _animatedTranslateY,
-      handleBarStyle,
-    ]);
+    };
 
     /**
      * Extracts and caches the _nativeTag property of ContentWrapper
@@ -208,13 +205,17 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const openBottomSheet = () => {
       animators.animateContainerHeight(containerHeight).start();
       animators.animateBackdropMaskOpacity(1).start();
-      animators.animateHeight(convertedHeight).start();
+      animators.animateHeight(convertedHeight).start(f => {
+        f.finished && setSheetOpen(true);
+      });
     };
 
     const closeBottomSheet = () => {
       animators.animateBackdropMaskOpacity(0).start();
       animators.animateHeight(0).start();
-      animators.animateContainerHeight(0).start();
+      animators
+        .animateContainerHeight(0)
+        .start(f => f.finished && setSheetOpen(false));
     };
 
     const animators = {
@@ -277,17 +278,32 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       setContainerHeight(newHeight);
       // incase `containerHeight` prop value changes when bottom sheet is expanded
       // we need to manually update the container height
-      containerRef.current?.setNativeProps({height: newHeight});
+      _animatedContainerHeight.setValue(newHeight);
     };
+
+    /**
+     * Handles auto adjusting container view height and clamping
+     * and normalizing containerHeight prop upon change, if its a number
+     */
+    useEffect(() => {
+      if (typeof passedContainerHeight == 'number') {
+        setContainerHeight(normalizeHeight(passedContainerHeight));
+        sheetOpen && _animatedContainerHeight.setValue(passedContainerHeight);
+      } else if (typeof passedContainerHeight == 'undefined') {
+        setContainerHeight(DEFAULT_CONTAINER_HEIGHT);
+        sheetOpen &&
+          _animatedContainerHeight.setValue(DEFAULT_CONTAINER_HEIGHT);
+      }
+    }, [passedContainerHeight, sheetOpen]);
 
     return (
       <>
         {typeof passedContainerHeight == 'string' ? (
           /**
-           * The purpose of below `View` is to determine the final container height in number.
-           * It does this by taking the percentage height passed via `containerHeight` prop,
-           * and return it's numeric equivalent after rendering, via its `onLayout` so we can
-           * use that as the final container height
+           * Below View handles converting `passedContainerHeight` from string to a number (to be animatable).
+           * It does this by taking the string height passed via `containerHeight` prop,
+           * and returning it's numeric equivalent after rendering, via its `onLayout` so we can
+           * use that as the final container height.
            */
           <View
             onLayout={containerViewLayoutHandler}
@@ -337,7 +353,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             ]}
             {...getPanHandlersFor('contentwrapper')}>
             {/* Content Handle Bar */}
-            {PolymorphicHandleBar}
+            {<PolymorphicHandleBar />}
             {children}
           </Animated.View>
         </Container>
