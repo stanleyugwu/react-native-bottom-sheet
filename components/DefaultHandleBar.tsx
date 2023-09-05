@@ -28,4 +28,7 @@ const DefaultHandleBar = ({style, ...otherProps}: DefaultHandleBarProps) => (
   </View>
 );
 
+// this will be used in `convertHeight` for clamping sheet height
+export const DEFAULT_HANDLE_BAR_DEFAULT_HEIGHT = 25; // paddingTop (10) + paddingBottom (10) + height (5)
+
 export default DefaultHandleBar;

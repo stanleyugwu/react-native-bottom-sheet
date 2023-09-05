@@ -1,7 +1,6 @@
 import React, {
   forwardRef,
   useCallback,
-  useDeferredValue,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -14,16 +13,13 @@ import {
   PanResponder,
   StyleSheet,
   LayoutChangeEvent,
-  Dimensions,
   useWindowDimensions,
   Keyboard,
-  EmitterSubscription,
 } from 'react-native';
 import {
   DEFAULT_ANIMATION,
   DEFAULT_BACKDROP_MASK_COLOR,
   DEFAULT_HEIGHT,
-  FALLBACK_CONTENT_WRAPPER_HEIGHT,
 } from './constant';
 import {BottomSheetProps} from './index.d';
 import AnimatedTouchableBackdropMask from './components/AnimatedTouchableBackdropMask';
@@ -178,7 +174,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * or `height` changes
      */
     const convertedHeight = useMemo(() => {
-      const newHeight = convertHeight(height, containerHeight);
+      const newHeight = convertHeight(height, containerHeight, hideHandleBar);
       if (sheetOpen) Animators.animateHeight(newHeight).start();
       return newHeight;
     }, [containerHeight, height, sheetOpen]);
