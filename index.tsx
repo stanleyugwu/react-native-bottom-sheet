@@ -101,13 +101,72 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     const SCREEN_HEIGHT = useWindowDimensions().height; // actual container height is measured after layout
     const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
-
     const [sheetOpen, setSheetOpen] = useState(false);
+
     // animated properties
     const _animatedContainerHeight = useAnimatedValue(0);
     const _animatedBackdropMaskOpacity = useAnimatedValue(0);
     const _animatedHeight = useAnimatedValue(0);
     const _animatedTranslateY = useAnimatedValue(0);
+
+    // Animation utility
+    const Animators = useMemo(
+      () => ({
+        _slideEasingFn(value: number) {
+          return value === 1 ? 1 : 1 - Math.pow(2, -10 * value);
+        },
+        _springEasingFn(value: number) {
+          const c4 = (2 * Math.PI) / 2.5;
+          return value === 0
+            ? 0
+            : value === 1
+            ? 1
+            : Math.pow(2, -9 * value) * Math.sin((value * 4.5 - 0.75) * c4) + 1;
+        },
+        animateContainerHeight(toValue: ToValue) {
+          return Animated.timing(_animatedContainerHeight, {
+            toValue: toValue,
+            useNativeDriver: false,
+            duration: 50,
+          });
+        },
+        animateBackdropMaskOpacity(toValue: ToValue) {
+          return Animated.timing(_animatedBackdropMaskOpacity, {
+            toValue: toValue,
+            useNativeDriver: false,
+            duration: 200,
+          });
+        },
+        animateHeight(toValue: ToValue) {
+          const DEFAULT_DURATION = 500;
+          return Animated.timing(_animatedHeight, {
+            toValue,
+            useNativeDriver: false,
+            duration:
+              animationType == ANIMATIONS.SPRING
+                ? DEFAULT_DURATION + 100
+                : DEFAULT_DURATION,
+            easing:
+              animationType == ANIMATIONS.SLIDE
+                ? this._slideEasingFn
+                : this._springEasingFn,
+          });
+        },
+        animateTranslateY(toValue: ToValue) {
+          const DEFAULT_DURATION = 500;
+          return Animated.timing(_animatedTranslateY, {
+            toValue,
+            useNativeDriver: false,
+            duration: DEFAULT_DURATION,
+            easing:
+              animationType == ANIMATIONS.SLIDE
+                ? this._slideEasingFn
+                : this._springEasingFn,
+          });
+        },
+      }),
+      [animationType],
+    );
 
     /** cached _nativeTag property of content container */
     const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
@@ -120,7 +179,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     const convertedHeight = useMemo(() => {
       const newHeight = convertHeight(height, containerHeight);
-      sheetOpen && _animatedHeight.setValue(newHeight);
+      if (sheetOpen) Animators.animateHeight(newHeight).start();
       return newHeight;
     }, [containerHeight, height, sheetOpen]);
 
@@ -169,7 +228,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           } else {
             _animatedBackdropMaskOpacity.setValue(1);
             animationType != ANIMATIONS.FADE &&
-              animators.animateHeight(convertedHeight).start();
+              Animators.animateHeight(convertedHeight).start();
           }
         },
       }).panHandlers;
@@ -216,10 +275,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * 3. The content container animates it's height from 0 to calculated height prop
      */
     const openBottomSheet = () => {
-      animators.animateContainerHeight(containerHeight).start();
-      animators.animateBackdropMaskOpacity(1).start();
+      Animators.animateContainerHeight(containerHeight).start();
+      Animators.animateBackdropMaskOpacity(1).start();
       animationType != ANIMATIONS.FADE &&
-        animators.animateHeight(convertedHeight).start(anim => {
+        Animators.animateHeight(convertedHeight).start(anim => {
           if (anim.finished) setSheetOpen(true);
         });
     };
@@ -227,75 +286,20 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const closeBottomSheet = () => {
       if (animationType == ANIMATIONS.FADE) {
         Animated.sequence([
-          animators.animateBackdropMaskOpacity(0),
-          animators.animateContainerHeight(0),
+          Animators.animateBackdropMaskOpacity(0),
+          Animators.animateContainerHeight(0),
         ]).start(anim => {
           if (anim.finished) setSheetOpen(false);
         });
       } else {
-        animators.animateBackdropMaskOpacity(0).start();
-        animators.animateContainerHeight(0).start(anim => {
+        Animators.animateBackdropMaskOpacity(0).start();
+        Animators.animateContainerHeight(0).start(anim => {
           if (anim.finished) setSheetOpen(false);
         });
-        animators.animateHeight(0).start();
+        Animators.animateHeight(0).start();
         removeKeyboardListeners();
         Keyboard.dismiss();
       }
-    };
-
-    const animators = {
-      _slideEasingFn(value: number) {
-        return value === 1 ? 1 : 1 - Math.pow(2, -10 * value);
-      },
-      _springEasingFn(value: number) {
-        const c4 = (2 * Math.PI) / 2.5;
-        return value === 0
-          ? 0
-          : value === 1
-          ? 1
-          : Math.pow(2, -9 * value) * Math.sin((value * 4.5 - 0.75) * c4) + 1;
-      },
-      animateContainerHeight(toValue: ToValue) {
-        return Animated.timing(_animatedContainerHeight, {
-          toValue: toValue,
-          useNativeDriver: false,
-          duration: 50,
-        });
-      },
-      animateBackdropMaskOpacity(toValue: ToValue) {
-        return Animated.timing(_animatedBackdropMaskOpacity, {
-          toValue: toValue,
-          useNativeDriver: false,
-          duration: 200,
-        });
-      },
-      animateHeight(toValue: ToValue) {
-        const DEFAULT_DURATION = 500;
-        return Animated.timing(_animatedHeight, {
-          toValue,
-          useNativeDriver: false,
-          duration:
-            animationType == ANIMATIONS.SPRING
-              ? DEFAULT_DURATION + 100
-              : DEFAULT_DURATION,
-          easing:
-            animationType == ANIMATIONS.SLIDE
-              ? this._slideEasingFn
-              : this._springEasingFn,
-        });
-      },
-      animateTranslateY(toValue: ToValue) {
-        const DEFAULT_DURATION = 500;
-        return Animated.timing(_animatedTranslateY, {
-          toValue,
-          useNativeDriver: false,
-          duration: DEFAULT_DURATION,
-          easing:
-            animationType == ANIMATIONS.SLIDE
-              ? this._slideEasingFn
-              : this._springEasingFn,
-        });
-      },
     };
 
     const containerViewLayoutHandler = (event: LayoutChangeEvent) => {
@@ -303,7 +307,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       setContainerHeight(newHeight);
       // incase `containerHeight` prop value changes when bottom sheet is expanded
       // we need to manually update the container height
-      _animatedContainerHeight.setValue(newHeight);
+      if (sheetOpen) _animatedContainerHeight.setValue(newHeight);
     };
 
     /**
@@ -314,10 +318,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     useEffect(() => {
       if (typeof passedContainerHeight == 'number') {
         setContainerHeight(normalizeHeight(passedContainerHeight));
-        sheetOpen && _animatedContainerHeight.setValue(passedContainerHeight);
+        if (sheetOpen) _animatedContainerHeight.setValue(passedContainerHeight);
       } else if (typeof passedContainerHeight == 'undefined') {
         setContainerHeight(SCREEN_HEIGHT);
-        sheetOpen && _animatedContainerHeight.setValue(SCREEN_HEIGHT);
+        if (sheetOpen) _animatedContainerHeight.setValue(SCREEN_HEIGHT);
       }
     }, [passedContainerHeight, sheetOpen, SCREEN_HEIGHT]);
 
