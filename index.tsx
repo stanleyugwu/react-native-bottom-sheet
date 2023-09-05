@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useDeferredValue,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -15,11 +16,14 @@ import {
   LayoutChangeEvent,
   Dimensions,
   useWindowDimensions,
+  Keyboard,
+  EmitterSubscription,
 } from 'react-native';
 import {
   DEFAULT_ANIMATION,
   DEFAULT_BACKDROP_MASK_COLOR,
   DEFAULT_HEIGHT,
+  FALLBACK_CONTENT_WRAPPER_HEIGHT,
 } from './constant';
 import {BottomSheetProps} from './index.d';
 import AnimatedTouchableBackdropMask from './components/AnimatedTouchableBackdropMask';
@@ -27,6 +31,7 @@ import DefaultHandleBar from './components/DefaultHandleBar';
 import Container from './components/Container';
 import normalizeHeight from './utils/normalizeHeight';
 import convertHeight from './utils/convertHeight';
+import useHandleKeyboardEvents from './hooks/useHandleKeyboardEvents';
 
 /**
  * Supported animation types
@@ -96,8 +101,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const SCREEN_HEIGHT = useWindowDimensions().height; // actual container height is measured after layout
     const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
 
-    const sheetOpen = useRef(false);
-
+    const [sheetOpen, setSheetOpen] = useState(false);
     // animated properties
     const _animatedContainerHeight = useRef(new Animated.Value(0)).current;
     const _animatedBackdropMaskOpacity = useRef(new Animated.Value(0)).current;
@@ -115,9 +119,15 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     const convertedHeight = useMemo(() => {
       const newHeight = convertHeight(height, containerHeight);
-      sheetOpen.current && _animatedHeight.setValue(newHeight);
+      sheetOpen && _animatedHeight.setValue(newHeight);
       return newHeight;
-    }, [containerHeight, height, sheetOpen.current]);
+    }, [containerHeight, height, sheetOpen]);
+
+    const {removeKeyboardListeners} = useHandleKeyboardEvents(
+      convertedHeight,
+      _animatedHeight,
+      sheetOpen,
+    );
 
     /**
      * Returns conditioned gesture handlers for content container and handle bar elements
@@ -209,7 +219,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       animators.animateBackdropMaskOpacity(1).start();
       animationType != ANIMATIONS.FADE &&
         animators.animateHeight(convertedHeight).start(anim => {
-          if (anim.finished) sheetOpen.current = true;
+          if (anim.finished) setSheetOpen(true);
         });
     };
 
@@ -219,14 +229,16 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           animators.animateBackdropMaskOpacity(0),
           animators.animateContainerHeight(0),
         ]).start(anim => {
-          if (anim.finished) sheetOpen.current = false;
+          if (anim.finished) setSheetOpen(false);
         });
       } else {
         animators.animateBackdropMaskOpacity(0).start();
         animators.animateContainerHeight(0).start(anim => {
-          if (anim.finished) sheetOpen.current = false;
+          if (anim.finished) setSheetOpen(false);
         });
         animators.animateHeight(0).start();
+        removeKeyboardListeners();
+        Keyboard.dismiss();
       }
     };
 
@@ -301,13 +313,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     useEffect(() => {
       if (typeof passedContainerHeight == 'number') {
         setContainerHeight(normalizeHeight(passedContainerHeight));
-        sheetOpen.current &&
-          _animatedContainerHeight.setValue(passedContainerHeight);
+        sheetOpen && _animatedContainerHeight.setValue(passedContainerHeight);
       } else if (typeof passedContainerHeight == 'undefined') {
         setContainerHeight(SCREEN_HEIGHT);
-        sheetOpen.current && _animatedContainerHeight.setValue(SCREEN_HEIGHT);
+        sheetOpen && _animatedContainerHeight.setValue(SCREEN_HEIGHT);
       }
-    }, [passedContainerHeight, sheetOpen.current, SCREEN_HEIGHT]);
+    }, [passedContainerHeight, sheetOpen, SCREEN_HEIGHT]);
 
     return (
       <>

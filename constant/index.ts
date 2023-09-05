@@ -1,7 +1,20 @@
-import { ANIMATIONS } from "..";
+import {ANIMATIONS} from '..';
 
 const DEFAULT_BACKDROP_MASK_COLOR = '#000a';
 const DEFAULT_HEIGHT = '50%';
 const DEFAULT_ANIMATION = ANIMATIONS.SLIDE;
 
-export {DEFAULT_BACKDROP_MASK_COLOR, DEFAULT_HEIGHT, DEFAULT_ANIMATION};
+/**
+ * Fallback height of content wrapper when it's lower than keyboard height.
+ * This is to prevent content wrapper hiding behind the keyboard.
+ * Mounting a View of this height atop the kwyboard would give enough space
+ * to see/enter text into TextInput
+ */
+const FALLBACK_CONTENT_WRAPPER_HEIGHT = 120;
+
+export {
+  DEFAULT_BACKDROP_MASK_COLOR,
+  DEFAULT_HEIGHT,
+  DEFAULT_ANIMATION,
+  FALLBACK_CONTENT_WRAPPER_HEIGHT,
+};
