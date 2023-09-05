@@ -32,6 +32,7 @@ import Container from './components/Container';
 import normalizeHeight from './utils/normalizeHeight';
 import convertHeight from './utils/convertHeight';
 import useHandleKeyboardEvents from './hooks/useHandleKeyboardEvents';
+import useAnimatedValue from './hooks/useAnimatedValue';
 
 /**
  * Supported animation types
@@ -103,10 +104,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     const [sheetOpen, setSheetOpen] = useState(false);
     // animated properties
-    const _animatedContainerHeight = useRef(new Animated.Value(0)).current;
-    const _animatedBackdropMaskOpacity = useRef(new Animated.Value(0)).current;
-    const _animatedHeight = useRef(new Animated.Value(0)).current;
-    const _animatedTranslateY = useRef(new Animated.Value(0)).current;
+    const _animatedContainerHeight = useAnimatedValue(0);
+    const _animatedBackdropMaskOpacity = useAnimatedValue(0);
+    const _animatedHeight = useAnimatedValue(0);
+    const _animatedTranslateY = useAnimatedValue(0);
 
     /** cached _nativeTag property of content container */
     const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
