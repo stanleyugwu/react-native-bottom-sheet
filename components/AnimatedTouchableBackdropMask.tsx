@@ -1,8 +1,8 @@
 import {
   Animated,
   GestureResponderEvent,
+  Pressable,
   StyleSheet,
-  TouchableOpacity,
   TouchableOpacityProps,
   ViewProps,
 } from 'react-native';
@@ -46,7 +46,7 @@ type AnimatedTouchableBackdropMaskProps =
  * Polymorphic animated backdrop mask component
  */
 const _AnimatedTouchableBackdropMask =
-  Animated.createAnimatedComponent(TouchableOpacity);
+  Animated.createAnimatedComponent(Pressable);
 
 const AnimatedTouchableBackdropMask = ({
   style,

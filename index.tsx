@@ -273,29 +273,21 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const openBottomSheet = () => {
       Animators.animateContainerHeight(containerHeight).start();
       Animators.animateBackdropMaskOpacity(1).start();
-      animationType != ANIMATIONS.FADE &&
-        Animators.animateHeight(convertedHeight).start(anim => {
-          if (anim.finished) setSheetOpen(true);
-        });
+      if (animationType != ANIMATIONS.FADE)
+        Animators.animateHeight(convertedHeight).start();
+      setSheetOpen(true);
     };
 
     const closeBottomSheet = () => {
-      if (animationType == ANIMATIONS.FADE) {
-        Animated.sequence([
-          Animators.animateBackdropMaskOpacity(0),
-          Animators.animateContainerHeight(0),
-        ]).start(anim => {
-          if (anim.finished) setSheetOpen(false);
-        });
-      } else {
-        Animators.animateBackdropMaskOpacity(0).start();
-        Animators.animateContainerHeight(0).start(anim => {
-          if (anim.finished) setSheetOpen(false);
-        });
-        Animators.animateHeight(0).start();
-        removeKeyboardListeners();
-        Keyboard.dismiss();
-      }
+      Animators.animateBackdropMaskOpacity(0).start(
+        anim => anim.finished && Animators.animateContainerHeight(0).start(),
+      );
+      if (animationType != ANIMATIONS.FADE)
+        Animators.animateHeight(0).start(
+          anim => anim.finished && Animators.animateContainerHeight(0).start(),
+        );
+      removeKeyboardListeners();
+      Keyboard.dismiss();
     };
 
     const containerViewLayoutHandler = (event: LayoutChangeEvent) => {
@@ -315,11 +307,14 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       if (typeof passedContainerHeight == 'number') {
         setContainerHeight(normalizeHeight(passedContainerHeight));
         if (sheetOpen) _animatedContainerHeight.setValue(passedContainerHeight);
-      } else if (typeof passedContainerHeight == 'undefined') {
+      } else if (
+        typeof passedContainerHeight == 'undefined' &&
+        containerHeight != SCREEN_HEIGHT
+      ) {
         setContainerHeight(SCREEN_HEIGHT);
         if (sheetOpen) _animatedContainerHeight.setValue(SCREEN_HEIGHT);
       }
-    }, [passedContainerHeight, sheetOpen, SCREEN_HEIGHT]);
+    }, [passedContainerHeight, SCREEN_HEIGHT]);
 
     return (
       <>
