@@ -1,6 +1,7 @@
 import {
   Animated,
   GestureResponderEvent,
+  OpaqueColorValue,
   Pressable,
   StyleSheet,
   TouchableOpacityProps,
@@ -38,9 +39,17 @@ type PropsWithoutHandler = RegularPropsFor<'View'> & {
   pressHandler?: never;
 };
 
-type AnimatedTouchableBackdropMaskProps =
+type AnimatedTouchableBackdropMaskProps = (
   | PropsWithHandler
-  | PropsWithoutHandler;
+  | PropsWithoutHandler
+) & {
+  /**
+   * Ripple effect color of the backdrop when touched
+   */
+  android_touchRippleColor?: Animated.WithAnimatedValue<
+    string | OpaqueColorValue
+  >;
+};
 
 /**
  * Polymorphic animated backdrop mask component
@@ -52,11 +61,22 @@ const AnimatedTouchableBackdropMask = ({
   style,
   isPressable,
   pressHandler,
+  android_touchRippleColor,
+  children,
   ...otherProps
 }: AnimatedTouchableBackdropMaskProps) => {
   return isPressable ? (
     <_AnimatedTouchableBackdropMask
       style={[style, styles.sharedBackdropStyle]}
+      android_ripple={
+        android_touchRippleColor
+          ? {
+              borderless: true,
+              color: android_touchRippleColor,
+              foreground: true,
+            }
+          : undefined
+      }
       onPress={pressHandler}
       {...otherProps}
     />

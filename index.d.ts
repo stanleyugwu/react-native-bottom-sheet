@@ -177,4 +177,15 @@ export interface BottomSheetProps extends Pick<ViewProps, 'children'> {
    * @default false
    */
   disableBodyPanning?: boolean;
+
+  /**
+   * Ripple effect color of backdrop mask when touched. 
+   * Works only on android and only if `closeOnBackdropPress` is true.
+   * 
+   * `Default: none`;
+   * @platform android
+   * @type string | OpaqueColorValue
+   * @default undefined
+   */
+  android_backdropMaskRippleColor?: string | OpaqueColorValue;
 }

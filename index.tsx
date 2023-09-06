@@ -68,6 +68,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       closeOnBackdropPress = true,
       height = DEFAULT_HEIGHT,
       hideHandleBar = false,
+      android_backdropMaskRippleColor,
       handleBarStyle,
       disableBodyPanning = false,
       disableHandleBarPanning = false,
@@ -341,6 +342,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           {/* @ts-expect-error (expects conditional render with `closeOnBackdropPress`) */}
           <AnimatedTouchableBackdropMask
             isPressable={closeOnBackdropPress}
+            android_rippleColor={android_backdropMaskRippleColor}
             pressHandler={closeBottomSheet}
             style={{
               opacity: _animatedBackdropMaskOpacity,
