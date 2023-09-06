@@ -287,6 +287,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         Animators.animateHeight(0).start(
           anim => anim.finished && Animators.animateContainerHeight(0).start(),
         );
+      setSheetOpen(false);
       removeKeyboardListeners();
       Keyboard.dismiss();
     };
