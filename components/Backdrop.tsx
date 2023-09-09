@@ -5,7 +5,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import {CUSTOM_BACKDROP_POSITION} from '..';
+import {CUSTOM_BACKDROP_POSITIONS} from '..';
 import AnimatedTouchableBackdropMask from './AnimatedTouchableBackdropMask';
 
 type Color =
@@ -14,10 +14,12 @@ type Color =
   | Animated.AnimatedInterpolation<string | number>
   | OpaqueColorValue
   | undefined;
-  
+
 type BackdropProps = {
-  BackdropComponent?: React.FunctionComponent<{_animatedHeight: Animated.Value}>;
-  backdropPosition: CUSTOM_BACKDROP_POSITION;
+  BackdropComponent?: React.FunctionComponent<{
+    _animatedHeight: Animated.Value;
+  }>;
+  backdropPosition?: Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
   sheetOpen: boolean;
   containerHeight: number;
   contentContainerHeight: number;
@@ -34,7 +36,7 @@ type BackdropProps = {
  */
 const Backdrop = ({
   BackdropComponent,
-  backdropPosition = CUSTOM_BACKDROP_POSITION.behind,
+  backdropPosition = CUSTOM_BACKDROP_POSITIONS.BEHIND,
   sheetOpen,
   containerHeight,
   contentContainerHeight,
@@ -48,7 +50,7 @@ const Backdrop = ({
   BackdropComponent ? (
     <View
       style={
-        backdropPosition === CUSTOM_BACKDROP_POSITION.behind
+        backdropPosition === CUSTOM_BACKDROP_POSITIONS.BEHIND
           ? StyleSheet.absoluteFillObject
           : {height: sheetOpen ? containerHeight - contentContainerHeight : 0}
       }>

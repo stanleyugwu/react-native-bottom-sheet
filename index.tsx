@@ -22,7 +22,6 @@ import {
   DEFAULT_HEIGHT,
 } from './constant';
 import {BottomSheetProps} from './index.d';
-import AnimatedTouchableBackdropMask from './components/AnimatedTouchableBackdropMask';
 import DefaultHandleBar from './components/DefaultHandleBar';
 import Container from './components/Container';
 import normalizeHeight from './utils/normalizeHeight';
@@ -43,9 +42,9 @@ export enum ANIMATIONS {
 /**
  * Supported custom backdrop component position
  */
-export enum CUSTOM_BACKDROP_POSITION {
-  top = 'top',
-  behind = 'behind',
+export enum CUSTOM_BACKDROP_POSITIONS {
+  TOP = 'top',
+  BEHIND = 'behind',
 }
 
 /**
@@ -86,7 +85,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       closeOnDragDown = true,
       containerHeight: passedContainerHeight,
       customBackdropComponent: CustomBackdropComponent,
-      customBackdropPosition = CUSTOM_BACKDROP_POSITION.behind,
+      customBackdropPosition = CUSTOM_BACKDROP_POSITIONS.BEHIND,
+      hideBackdrop = false,
     },
     ref,
   ) => {
@@ -298,7 +298,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       // 1. open container
       // 2. if using fade animation, set content container height convertedHeight manually, animate backdrop.
       // else, animate backdrop and content container height in parallel
-      Animators.animateContainerHeight(containerHeight).start();
+      Animators.animateContainerHeight(
+        hideBackdrop ? convertedHeight : containerHeight,
+      ).start();
       if (animationType == ANIMATIONS.FADE) {
         _animatedHeight.setValue(convertedHeight);
         Animators.animateBackdropMaskOpacity(1).start();
@@ -343,17 +345,27 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * Also auto adjusts when orientation changes
      */
     useLayoutEffect(() => {
-      if (typeof passedContainerHeight == 'number') {
-        setContainerHeight(normalizeHeight(passedContainerHeight));
-        if (sheetOpen) _animatedContainerHeight.setValue(passedContainerHeight);
-      } else if (
-        typeof passedContainerHeight == 'undefined' &&
-        containerHeight != SCREEN_HEIGHT
-      ) {
-        setContainerHeight(SCREEN_HEIGHT);
-        if (sheetOpen) _animatedContainerHeight.setValue(SCREEN_HEIGHT);
+      if (hideBackdrop) return;
+      else {
+        if (typeof passedContainerHeight == 'number') {
+          setContainerHeight(normalizeHeight(passedContainerHeight));
+          if (sheetOpen)
+            _animatedContainerHeight.setValue(passedContainerHeight);
+        } else if (
+          typeof passedContainerHeight == 'undefined' &&
+          containerHeight != SCREEN_HEIGHT
+        ) {
+          setContainerHeight(SCREEN_HEIGHT);
+          if (sheetOpen) _animatedContainerHeight.setValue(SCREEN_HEIGHT);
+        }
       }
-    }, [passedContainerHeight, SCREEN_HEIGHT, sheetOpen, containerHeight]);
+    }, [
+      passedContainerHeight,
+      SCREEN_HEIGHT,
+      sheetOpen,
+      containerHeight,
+      hideBackdrop,
+    ]);
 
     return (
       <>
@@ -377,19 +389,21 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         {/* Container */}
         <Container style={{height: _animatedContainerHeight}}>
           {/* Backdrop */}
-          <Backdrop
-            BackdropComponent={CustomBackdropComponent}
-            _animatedHeight={_animatedHeight}
-            animatedBackdropOpacity={_animatedBackdropMaskOpacity}
-            backdropColor={backdropMaskColor}
-            backdropPosition={customBackdropPosition}
-            closeOnPress={closeOnBackdropPress}
-            containerHeight={containerHeight}
-            contentContainerHeight={convertedHeight}
-            pressHandler={closeBottomSheet}
-            rippleColor={android_backdropMaskRippleColor}
-            sheetOpen={sheetOpen}
-          />
+          {hideBackdrop ? null : (
+            <Backdrop
+              BackdropComponent={CustomBackdropComponent}
+              _animatedHeight={_animatedHeight}
+              animatedBackdropOpacity={_animatedBackdropMaskOpacity}
+              backdropColor={backdropMaskColor}
+              backdropPosition={customBackdropPosition}
+              closeOnPress={closeOnBackdropPress}
+              containerHeight={containerHeight}
+              contentContainerHeight={convertedHeight}
+              pressHandler={closeBottomSheet}
+              rippleColor={android_backdropMaskRippleColor}
+              sheetOpen={sheetOpen}
+            />
+          )}
           {/* content container */}
           <Animated.View
             key={'BottomSheetContentContainer'}

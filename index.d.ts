@@ -1,5 +1,5 @@
 import {Animated, OpaqueColorValue, ViewProps, ViewStyle} from 'react-native';
-import {ANIMATIONS, CUSTOM_BACKDROP_POSITION} from '.';
+import {ANIMATIONS, CUSTOM_BACKDROP_POSITIONS} from '.';
 
 /**
  * Alias for `ANIMATIONS` to allow literal animation type string as prop
@@ -211,5 +211,16 @@ export interface BottomSheetProps extends Pick<ViewProps, 'children'> {
    * @type {"top" | "behind"} 
    * @default "behind"
    */
-  customBackdropPosition?: CUSTOM_BACKDROP_POSITION
+  customBackdropPosition?: Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
+
+  /**
+   * Disables/hides the backdrop mask component.
+   * 
+   * `Note:` This will also hide custom backdrop component supplied via `customBackdropComponent` prop.
+   * 
+   * `Default: false`
+   * @type boolean
+   * @default false
+   */
+  hideBackdrop?: boolean;
 }
