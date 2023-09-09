@@ -367,7 +367,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               contentContainerStyle,
               {
                 height:
-                  animationType == ANIMATIONS.FADE ? height : _animatedHeight,
+                  animationType == ANIMATIONS.FADE ? convertedHeight : _animatedHeight,
                 minHeight: _animatedHeight,
                 opacity:
                   animationType == ANIMATIONS.FADE
