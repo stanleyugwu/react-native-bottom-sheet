@@ -10,7 +10,7 @@ export type AnimationType = Lowercase<keyof typeof ANIMATIONS>;
 /**
  * Props types for bottom sheet component
  */
-export interface BottomSheetProps extends Pick<ViewProps, 'children'> {
+export interface BottomSheetProps {
   /**
    * Height of the bottom sheet when expanded. This value will be relative to `containerHeight`
    * if it's supplied, or the screen's height otherwise.
@@ -196,31 +196,47 @@ export interface BottomSheetProps extends Pick<ViewProps, 'children'> {
    * @type {React.Component}
    * @default null
    */
-  customBackdropComponent?: React.FunctionComponent<{_animatedHeight: Animated.Value}>;
+  customBackdropComponent?: React.FunctionComponent<{
+    _animatedHeight: Animated.Value;
+  }>;
 
   /**
    * When `customBackdropComponent` is provided, determines its position within the sheet.\
-   * 
+   *
    * **'top'** - positions the custom backdrop component directly above the sheet\
-   * **'behind'** - positions the custom backdrop component behind the sheet. 
+   * **'behind'** - positions the custom backdrop component behind the sheet.
    * This is the default behaviour\
-   * 
+   *
    * `Note:` This prop only applies to custom backdrop component
-   * 
+   *
    * `Default: 'top'`
-   * @type {"top" | "behind"} 
+   * @type {"top" | "behind"}
    * @default "behind"
    */
   customBackdropPosition?: Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
 
   /**
    * Disables/hides the backdrop mask component.
-   * 
+   *
    * `Note:` This will also hide custom backdrop component supplied via `customBackdropComponent` prop.
-   * 
+   *
    * `Default: false`
    * @type boolean
    * @default false
    */
   hideBackdrop?: boolean;
+
+  /**
+   * Contents of the bottom sheet. Can be element(s) or a component.
+   *
+   * If this is a component, it will be passed animated
+   * height of bottom sheet via `_animatedHeight` prop
+   *
+   * `Default: null`
+   * @type {ViewProps['children'] | React.FunctionComponent<{_animatedHeight: Animated.Value}>}
+   * @default null
+   */
+  children:
+    | ViewProps['children']
+    | React.FunctionComponent<{_animatedHeight: Animated.Value}>;
 }

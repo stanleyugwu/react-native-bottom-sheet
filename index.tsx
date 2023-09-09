@@ -71,7 +71,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
   (
     {
       backdropMaskColor = DEFAULT_BACKDROP_MASK_COLOR,
-      children,
+      children: Children,
       animationType = DEFAULT_ANIMATION,
       closeOnBackdropPress = true,
       height = DEFAULT_HEIGHT,
@@ -261,7 +261,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     /**
      * Polymorphic content container handle bar component
      */
-    const PolymorphicHandleBar = () => {
+    const PolymorphicHandleBar: React.FunctionComponent<{}> = () => {
       const CustomHandleBar = customHandleBarComponent;
       return hideHandleBar ? null : CustomHandleBar &&
         typeof CustomHandleBar == 'function' ? (
@@ -424,9 +424,15 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               },
             ]}
             {...getPanHandlersFor('contentwrapper')}>
-            {/* Content Handle Bar */}
-            {<PolymorphicHandleBar />}
-            {children}
+            <>
+              {/* Content Handle Bar */}
+              <PolymorphicHandleBar />
+              {typeof Children == 'function' ? (
+                <Children _animatedHeight={_animatedHeight} />
+              ) : (
+                Children
+              )}
+            </>
           </Animated.View>
         </Container>
       </>
