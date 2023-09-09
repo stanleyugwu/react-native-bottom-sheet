@@ -176,9 +176,13 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     const convertedHeight = useMemo(() => {
       const newHeight = convertHeight(height, containerHeight, hideHandleBar);
-      if (sheetOpen) Animators.animateHeight(newHeight).start();
+      if (sheetOpen) {
+        if (animationType == ANIMATIONS.FADE)
+          _animatedHeight.setValue(newHeight);
+        else Animators.animateHeight(newHeight).start();
+      }
       return newHeight;
-    }, [containerHeight, height, sheetOpen]);
+    }, [containerHeight, height, sheetOpen, animationType]);
 
     const {removeKeyboardListeners} = useHandleKeyboardEvents(
       convertedHeight,
@@ -265,28 +269,40 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     );
 
     /**
-     * Expands the bottom sheet.\
-     * The flow/steps of the bottom sheet animation is:
-     * 1. The container enters the screen (slide-in) by animating it's height to that of screen
-     * 2. It's opacity animates to 1 from 0
-     * 3. The content container animates it's height from 0 to calculated height prop
+     * Expands the bottom sheet.
      */
     const openBottomSheet = () => {
+      // 1. open container
+      // 2. if using fade animation, set content container height convertedHeight manually, animate backdrop.
+      // else, animate backdrop and content container height in parallel
       Animators.animateContainerHeight(containerHeight).start();
-      Animators.animateBackdropMaskOpacity(1).start();
-      if (animationType != ANIMATIONS.FADE)
+      if (animationType == ANIMATIONS.FADE) {
+        _animatedHeight.setValue(convertedHeight);
+        Animators.animateBackdropMaskOpacity(1).start();
+      } else {
+        Animators.animateBackdropMaskOpacity(1).start();
         Animators.animateHeight(convertedHeight).start();
+      }
       setSheetOpen(true);
     };
 
     const closeBottomSheet = () => {
-      Animators.animateBackdropMaskOpacity(0).start(
-        anim => anim.finished && Animators.animateContainerHeight(0).start(),
-      );
-      if (animationType != ANIMATIONS.FADE)
-        Animators.animateHeight(0).start(
-          anim => anim.finished && Animators.animateContainerHeight(0).start(),
-        );
+      // 1. fade backdrop
+      // 2. if using fade animation, close container, set content wrapper height to 0.
+      // else animate content container height & container height to 0, in sequence
+      Animators.animateBackdropMaskOpacity(0).start(anim => {
+        if (anim.finished) {
+          if (animationType == ANIMATIONS.FADE) {
+            Animators.animateContainerHeight(0).start();
+            _animatedHeight.setValue(0);
+          } else {
+            Animated.sequence([
+              Animators.animateHeight(0),
+              Animators.animateContainerHeight(0),
+            ]).start();
+          }
+        }
+      });
       setSheetOpen(false);
       removeKeyboardListeners();
       Keyboard.dismiss();
@@ -366,8 +382,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               styles.contentContainer,
               contentContainerStyle,
               {
-                height:
-                  animationType == ANIMATIONS.FADE ? convertedHeight : _animatedHeight,
+                height: _animatedHeight,
                 minHeight: _animatedHeight,
                 opacity:
                   animationType == ANIMATIONS.FADE
