@@ -1,5 +1,5 @@
-import { Animated, OpaqueColorValue, ViewProps, ViewStyle } from "react-native";
-import { ANIMATIONS } from ".";
+import {Animated, OpaqueColorValue, ViewProps, ViewStyle} from 'react-native';
+import {ANIMATIONS, CUSTOM_BACKDROP_POSITION} from '.';
 
 /**
  * Alias for `ANIMATIONS` to allow literal animation type string as prop
@@ -121,7 +121,7 @@ export interface BottomSheetProps extends Pick<ViewProps, 'children'> {
             style={{
                 height: 5,
                 backgroundColor: 'orange',
-                width: props.animatedYTranslation.interpolate({
+                width: props._animatedYTranslation.interpolate({
                   inputRange: [0, 25, 200],
                   outputRange: [20, 50, 100],
                 }),
@@ -139,13 +139,13 @@ export interface BottomSheetProps extends Pick<ViewProps, 'children'> {
      * Animated height of the bottom sheet when expanding
      * @type {Animated.Value}
      */
-    animatedHeight: Animated.Value;
+    _animatedHeight: Animated.Value;
 
     /**
      * Animated **y-axis** translation (i.e `translateY`) of the bottom sheet when it's panned/dragged down/up
      * @type {Animated.Value}
      */
-    animatedYTranslation: Animated.Value;
+    _animatedYTranslation: Animated.Value;
   }>;
 
   /**
@@ -179,13 +179,37 @@ export interface BottomSheetProps extends Pick<ViewProps, 'children'> {
   disableBodyPanning?: boolean;
 
   /**
-   * Ripple effect color of backdrop mask when touched. 
+   * Ripple effect color of backdrop mask when touched.
    * Works only on android and only if `closeOnBackdropPress` is true.
-   * 
+   *
    * `Default: none`;
    * @platform android
    * @type string | OpaqueColorValue
    * @default undefined
    */
   android_backdropMaskRippleColor?: string | OpaqueColorValue;
+
+  /**
+   * Custom component for sheet's backdrop mask.\
+   * `Note:` The component will be passed animated height value
+   *
+   * @type {React.Component}
+   * @default null
+   */
+  customBackdropComponent?: React.FunctionComponent<{_animatedHeight: Animated.Value}>;
+
+  /**
+   * When `customBackdropComponent` is provided, determines its position within the sheet.\
+   * 
+   * **'top'** - positions the custom backdrop component directly above the sheet\
+   * **'behind'** - positions the custom backdrop component behind the sheet. 
+   * This is the default behaviour\
+   * 
+   * `Note:` This prop only applies to custom backdrop component
+   * 
+   * `Default: 'top'`
+   * @type {"top" | "behind"} 
+   * @default "behind"
+   */
+  customBackdropPosition?: CUSTOM_BACKDROP_POSITION
 }

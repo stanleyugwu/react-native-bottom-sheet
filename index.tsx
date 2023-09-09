@@ -29,6 +29,7 @@ import normalizeHeight from './utils/normalizeHeight';
 import convertHeight from './utils/convertHeight';
 import useHandleKeyboardEvents from './hooks/useHandleKeyboardEvents';
 import useAnimatedValue from './hooks/useAnimatedValue';
+import Backdrop from './components/Backdrop';
 
 /**
  * Supported animation types
@@ -37,6 +38,14 @@ export enum ANIMATIONS {
   SLIDE = 'slide',
   SPRING = 'spring',
   FADE = 'fade',
+}
+
+/**
+ * Supported custom backdrop component position
+ */
+export enum CUSTOM_BACKDROP_POSITION {
+  top = 'top',
+  behind = 'behind',
 }
 
 /**
@@ -76,6 +85,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       style: contentContainerStyle,
       closeOnDragDown = true,
       containerHeight: passedContainerHeight,
+      customBackdropComponent: CustomBackdropComponent,
+      customBackdropPosition = CUSTOM_BACKDROP_POSITION.behind,
     },
     ref,
   ) => {
@@ -165,6 +176,18 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       [animationType],
     );
 
+    const interpolatedOpacity = useMemo(
+      () =>
+        animationType == ANIMATIONS.FADE
+          ? _animatedBackdropMaskOpacity.interpolate({
+              inputRange: [0, 0.5, 1],
+              outputRange: [0, 0.3, 1],
+              extrapolate: 'clamp',
+            })
+          : contentContainerStyle?.opacity,
+      [animationType, contentContainerStyle],
+    );
+
     /** cached _nativeTag property of content container */
     const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
 
@@ -244,8 +267,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         typeof CustomHandleBar == 'function' ? (
         <View style={{alignSelf: 'center'}} {...getPanHandlersFor('handlebar')}>
           <CustomHandleBar
-            animatedHeight={_animatedHeight}
-            animatedYTranslation={_animatedTranslateY}
+            _animatedHeight={_animatedHeight}
+            _animatedYTranslation={_animatedTranslateY}
           />
         </View>
       ) : (
@@ -296,10 +319,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             Animators.animateContainerHeight(0).start();
             _animatedHeight.setValue(0);
           } else {
-            Animated.sequence([
-              Animators.animateHeight(0),
-              Animators.animateContainerHeight(0),
-            ]).start();
+            Animators.animateHeight(0).start();
+            Animators.animateContainerHeight(0).start();
           }
         }
       });
@@ -356,17 +377,18 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         {/* Container */}
         <Container style={{height: _animatedContainerHeight}}>
           {/* Backdrop */}
-          {/* @ts-expect-error (expects conditional render with `closeOnBackdropPress`) */}
-          <AnimatedTouchableBackdropMask
-            isPressable={closeOnBackdropPress}
-            android_rippleColor={android_backdropMaskRippleColor}
+          <Backdrop
+            BackdropComponent={CustomBackdropComponent}
+            _animatedHeight={_animatedHeight}
+            animatedBackdropOpacity={_animatedBackdropMaskOpacity}
+            backdropColor={backdropMaskColor}
+            backdropPosition={customBackdropPosition}
+            closeOnPress={closeOnBackdropPress}
+            containerHeight={containerHeight}
+            contentContainerHeight={convertedHeight}
             pressHandler={closeBottomSheet}
-            style={{
-              opacity: _animatedBackdropMaskOpacity,
-              backgroundColor: backdropMaskColor,
-            }}
-            touchSoundDisabled
-            key={'TouchableBackdropMask'}
+            rippleColor={android_backdropMaskRippleColor}
+            sheetOpen={sheetOpen}
           />
           {/* content container */}
           <Animated.View
@@ -384,18 +406,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               {
                 height: _animatedHeight,
                 minHeight: _animatedHeight,
-                opacity:
-                  animationType == ANIMATIONS.FADE
-                    ? _animatedBackdropMaskOpacity.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0, 0.3, 1],
-                        extrapolate: 'clamp',
-                      })
-                    : contentContainerStyle?.opacity,
-                transform: [
-                  ...(contentContainerStyle?.transform || []),
-                  {translateY: _animatedTranslateY}, // non-overridable,
-                ],
+                opacity: interpolatedOpacity,
               },
             ]}
             {...getPanHandlersFor('contentwrapper')}>

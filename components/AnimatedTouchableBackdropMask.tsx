@@ -52,7 +52,7 @@ type AnimatedTouchableBackdropMaskProps = (
 };
 
 /**
- * Polymorphic animated backdrop mask component
+ * Polymorphic and re-usable animated backdrop mask component
  */
 const _AnimatedTouchableBackdropMask =
   Animated.createAnimatedComponent(Pressable);
