@@ -1,8 +1,8 @@
 import React, {
   forwardRef,
   useCallback,
-  useEffect,
   useImperativeHandle,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -134,8 +134,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             duration: 200,
           });
         },
-        animateHeight(toValue: ToValue) {
-          const DEFAULT_DURATION = 500;
+        animateHeight(toValue: ToValue, duration?:number) {
+          const DEFAULT_DURATION = duration || 500;
           return Animated.timing(_animatedHeight, {
             toValue,
             useNativeDriver: false,
@@ -182,8 +182,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     const {removeKeyboardListeners} = useHandleKeyboardEvents(
       convertedHeight,
-      _animatedHeight,
       sheetOpen,
+      Animators.animateHeight
     );
 
     /**

@@ -19,22 +19,28 @@ type HookReturn = {
  */
 type UseHandleKeyboardEvents = (
   heightTo: number,
-  animatedHeight: Animated.Value,
   sheetOpen: boolean,
+  HeightAnimator: any,
 ) => HookReturn;
+
+type HeightAnimationDriver = (
+  height: number,
+  duration: number,
+) => Animated.CompositeAnimation;
 
 /**
  * Handles keyboard pop up adjusts sheet's layout when TextInput within
  * the sheet receives focus.
  *
  * @param {number} sheetHeight Initial sheet's height before keyboard pop out
- * @param {Animated.Value} animatedHeightNode Animatable node via which sheet's height will be adjusted
  * @param {boolean} sheetOpen Indicates whether the sheet is open or closed
+ * @param {HeightAnimationDriver} heightAnimationDriver Animator function to be called with new
+ * sheet height when keyboard is out so it can adjust the sheet height with animation
  */
 const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
   sheetHeight: number,
-  animatedHeightNode: Animated.Value,
   sheetOpen: boolean,
+  heightAnimationDriver: HeightAnimationDriver,
 ) => {
   const SCREEN_HEIGHT = useWindowDimensions().height;
   const keyboardHideSubscription = useRef<EmitterSubscription>();
@@ -49,15 +55,14 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
             sheetHeight - keyboardHeight,
             FALLBACK_CONTENT_WRAPPER_HEIGHT,
           );
-
-          animatedHeightNode.setValue(height);
+          heightAnimationDriver(height, 200).start();
         }
       },
     );
     keyboardHideSubscription.current = Keyboard.addListener(
       'keyboardDidHide',
       evt => {
-        if (sheetOpen) animatedHeightNode.setValue(sheetHeight);
+        if (sheetOpen) heightAnimationDriver(sheetHeight, 200).start();
       },
     );
 
@@ -65,7 +70,7 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
       keyboardHideSubscription.current?.remove();
       keyboardShowSubscription.current?.remove();
     };
-  }, [sheetHeight, SCREEN_HEIGHT, sheetOpen]);
+  }, [sheetHeight, SCREEN_HEIGHT, sheetOpen, heightAnimationDriver]);
 
   return {
     removeKeyboardListeners() {
