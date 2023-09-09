@@ -2,10 +2,10 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
-  useEffect,
   useMemo,
   useRef,
   useState,
+  useLayoutEffect,
 } from 'react';
 import {
   Animated,
@@ -134,7 +134,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             duration: 200,
           });
         },
-        animateHeight(toValue: ToValue, duration?:number) {
+        animateHeight(toValue: ToValue, duration?: number) {
           const DEFAULT_DURATION = duration || 500;
           return Animated.timing(_animatedHeight, {
             toValue,
@@ -183,7 +183,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const {removeKeyboardListeners} = useHandleKeyboardEvents(
       convertedHeight,
       sheetOpen,
-      Animators.animateHeight
+      Animators.animateHeight,
     );
 
     /**
@@ -305,7 +305,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * and normalizing `containerHeight` prop upon change, if its a number.
      * Also auto adjusts when orientation changes
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (typeof passedContainerHeight == 'number') {
         setContainerHeight(normalizeHeight(passedContainerHeight));
         if (sheetOpen) _animatedContainerHeight.setValue(passedContainerHeight);
@@ -316,7 +316,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         setContainerHeight(SCREEN_HEIGHT);
         if (sheetOpen) _animatedContainerHeight.setValue(SCREEN_HEIGHT);
       }
-    }, [passedContainerHeight, SCREEN_HEIGHT]);
+    }, [passedContainerHeight, SCREEN_HEIGHT, sheetOpen, containerHeight]);
 
     return (
       <>
