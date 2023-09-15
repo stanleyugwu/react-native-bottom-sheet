@@ -19,7 +19,9 @@ import {
 import {
   DEFAULT_ANIMATION,
   DEFAULT_BACKDROP_MASK_COLOR,
+  DEFAULT_CLOSE_ANIMATION_DURATION,
   DEFAULT_HEIGHT,
+  DEFAULT_OPEN_ANIMATION_DURATION,
 } from './constant';
 import {BottomSheetProps} from './index.d';
 import DefaultHandleBar from './components/DefaultHandleBar';
@@ -61,13 +63,22 @@ export interface BottomSheetMethods {
   close(): void;
 }
 
-// short hand for toValue key of animation
+// short hand for toValue key of Animator methods
 type ToValue = Animated.TimingAnimationConfig['toValue'];
+
+// this is to accomodate static `ANIMATIONS` property of BottomSheet function below
+type BOTTOMSHEET = (React.ForwardRefExoticComponent<
+  BottomSheetProps & React.RefAttributes<BottomSheetMethods>
+>) & {ANIMATIONS: typeof ANIMATIONS};
 
 /**
  * Main bottom sheet component
  */
-const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
+// @ts-expect-error Ts throws error because of static `ANIMATIONS`
+const BottomSheet: BOTTOMSHEET = forwardRef<
+  BottomSheetMethods,
+  BottomSheetProps
+>(
   (
     {
       backdropMaskColor = DEFAULT_BACKDROP_MASK_COLOR,
@@ -87,6 +98,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       customBackdropComponent: CustomBackdropComponent,
       customBackdropPosition = CUSTOM_BACKDROP_POSITIONS.BEHIND,
       hideBackdrop = false,
+      openDuration = DEFAULT_OPEN_ANIMATION_DURATION,
+      closeDuration = DEFAULT_CLOSE_ANIMATION_DURATION,
     },
     ref,
   ) => {
@@ -131,41 +144,30 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             ? 1
             : Math.pow(2, -9 * value) * Math.sin((value * 4.5 - 0.75) * c4) + 1;
         },
-        animateContainerHeight(toValue: ToValue) {
+        animateContainerHeight(toValue: ToValue, duration: number = 0) {
           return Animated.timing(_animatedContainerHeight, {
             toValue: toValue,
             useNativeDriver: false,
-            duration: 50,
+            duration: duration,
           });
         },
-        animateBackdropMaskOpacity(toValue: ToValue) {
+        animateBackdropMaskOpacity(toValue: ToValue, duration: number) {
+          // we use passed open and close durations when animation type is fade
+          // but we use half of that for other animation types for good UX
+          const _duration =
+            animationType === ANIMATIONS.FADE ? duration : duration / 2.5;
+
           return Animated.timing(_animatedBackdropMaskOpacity, {
             toValue: toValue,
             useNativeDriver: false,
-            duration: 200,
+            duration: _duration,
           });
         },
-        animateHeight(toValue: ToValue, duration?: number) {
-          const DEFAULT_DURATION = duration || 500;
+        animateHeight(toValue: ToValue, duration: number) {
           return Animated.timing(_animatedHeight, {
             toValue,
             useNativeDriver: false,
-            duration:
-              animationType == ANIMATIONS.SPRING
-                ? DEFAULT_DURATION + 100
-                : DEFAULT_DURATION,
-            easing:
-              animationType == ANIMATIONS.SLIDE
-                ? this._slideEasingFn
-                : this._springEasingFn,
-          });
-        },
-        animateTranslateY(toValue: ToValue) {
-          const DEFAULT_DURATION = 500;
-          return Animated.timing(_animatedTranslateY, {
-            toValue,
-            useNativeDriver: false,
-            duration: DEFAULT_DURATION,
+            duration: duration,
             easing:
               animationType == ANIMATIONS.SLIDE
                 ? this._slideEasingFn
@@ -199,13 +201,21 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     const convertedHeight = useMemo(() => {
       const newHeight = convertHeight(height, containerHeight, hideHandleBar);
-      if (sheetOpen) {
+
+      // FIXME: we use interface-undefined but existing property `_value` here and it's risky
+      // @ts-expect-error
+      const curHeight = _animatedHeight._value;
+      if (sheetOpen && newHeight !== curHeight) {
         if (animationType == ANIMATIONS.FADE)
           _animatedHeight.setValue(newHeight);
-        else Animators.animateHeight(newHeight).start();
+        else
+          Animators.animateHeight(
+            newHeight,
+            newHeight > curHeight ? openDuration : closeDuration,
+          ).start();
       }
       return newHeight;
-    }, [containerHeight, height, sheetOpen, animationType]);
+    }, [containerHeight, height, animationType, sheetOpen]);
 
     const {removeKeyboardListeners} = useHandleKeyboardEvents(
       convertedHeight,
@@ -242,7 +252,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             // to makes the backdrop more transparent as you drag the content sheet down
             const relativeOpacity = 1 - gestureState.dy / convertedHeight;
             _animatedBackdropMaskOpacity.setValue(relativeOpacity);
-            animationType != ANIMATIONS.FADE &&
+
+            if (animationType != ANIMATIONS.FADE)
               _animatedHeight.setValue(convertedHeight - gestureState.dy);
           }
         },
@@ -251,8 +262,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             closeBottomSheet();
           } else {
             _animatedBackdropMaskOpacity.setValue(1);
-            animationType != ANIMATIONS.FADE &&
-              Animators.animateHeight(convertedHeight).start();
+            if (animationType != ANIMATIONS.FADE)
+              Animators.animateHeight(
+                convertedHeight,
+                openDuration / 2,
+              ).start();
           }
         },
       }).panHandlers;
@@ -301,12 +315,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       Animators.animateContainerHeight(
         hideBackdrop ? convertedHeight : containerHeight,
       ).start();
-      if (animationType == ANIMATIONS.FADE) {
+      if (animationType === ANIMATIONS.FADE) {
         _animatedHeight.setValue(convertedHeight);
-        Animators.animateBackdropMaskOpacity(1).start();
+        Animators.animateBackdropMaskOpacity(1, openDuration).start();
       } else {
-        Animators.animateBackdropMaskOpacity(1).start();
-        Animators.animateHeight(convertedHeight).start();
+        Animators.animateBackdropMaskOpacity(1, openDuration).start();
+        Animators.animateHeight(convertedHeight, openDuration).start();
       }
       setSheetOpen(true);
     };
@@ -315,13 +329,13 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       // 1. fade backdrop
       // 2. if using fade animation, close container, set content wrapper height to 0.
       // else animate content container height & container height to 0, in sequence
-      Animators.animateBackdropMaskOpacity(0).start(anim => {
+      Animators.animateBackdropMaskOpacity(0, closeDuration).start(anim => {
         if (anim.finished) {
           if (animationType == ANIMATIONS.FADE) {
             Animators.animateContainerHeight(0).start();
             _animatedHeight.setValue(0);
           } else {
-            Animators.animateHeight(0).start();
+            Animators.animateHeight(0, closeDuration).start();
             Animators.animateContainerHeight(0).start();
           }
         }
@@ -345,7 +359,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * Also auto adjusts when orientation changes
      */
     useLayoutEffect(() => {
-      if (hideBackdrop) return;
+      if (hideBackdrop)
+        return; // no auto layout adjustment when backdrop is hidden
       else {
         if (typeof passedContainerHeight == 'number') {
           setContainerHeight(normalizeHeight(passedContainerHeight));
@@ -439,6 +454,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     );
   },
 );
+
+// extend BottomSheet function with static animation type
+BottomSheet.ANIMATIONS = ANIMATIONS;
 
 const styles = StyleSheet.create({
   contentContainer: {

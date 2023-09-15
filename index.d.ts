@@ -94,7 +94,9 @@ export interface BottomSheetProps {
   closeOnDragDown?: boolean;
 
   /**
-   * Determines whether the handle bar (default or custom) is visible or hidden. It is visible by default.
+   * When true, hides the handle bar. Handle bar is visible by default.
+   * 
+   * `Note:` When true, custom handle bar component will also be hidden.
    *
    * `Default: false`
    *
@@ -216,7 +218,7 @@ export interface BottomSheetProps {
   customBackdropPosition?: Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
 
   /**
-   * Disables/hides the backdrop mask component.
+   * When true, disables/hides the backdrop mask component.
    *
    * `Note:` This will also hide custom backdrop component supplied via `customBackdropComponent` prop.
    *
@@ -239,4 +241,22 @@ export interface BottomSheetProps {
   children:
     | ViewProps['children']
     | React.FunctionComponent<{_animatedHeight: Animated.Value}>;
+
+  /**
+   * Duration for sheet opening animation.
+   * 
+   * `Default: 500`
+   * @type number
+   * @default 500
+   */
+  openDuration?: number;
+
+  /**
+   * Duration for sheet closing animation.
+   * 
+   * `Default: 500`
+   * @type number
+   * @default 500
+   */
+  closeDuration?: number;
 }
