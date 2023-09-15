@@ -67,9 +67,9 @@ export interface BottomSheetMethods {
 type ToValue = Animated.TimingAnimationConfig['toValue'];
 
 // this is to accomodate static `ANIMATIONS` property of BottomSheet function below
-type BOTTOMSHEET = (React.ForwardRefExoticComponent<
+type BOTTOMSHEET = React.ForwardRefExoticComponent<
   BottomSheetProps & React.RefAttributes<BottomSheetMethods>
->) & {ANIMATIONS: typeof ANIMATIONS};
+> & {ANIMATIONS: typeof ANIMATIONS};
 
 /**
  * Main bottom sheet component
@@ -226,7 +226,7 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
     /**
      * Returns conditioned gesture handlers for content container and handle bar elements
      */
-    const getPanHandlersFor = (view: 'handlebar' | 'contentwrapper') => {
+    const panHandlersFor = (view: 'handlebar' | 'contentwrapper') => {
       if (view == 'handlebar' && disableHandleBarPanning) return null;
       if (view == 'contentwrapper' && disableBodyPanning) return null;
       return PanResponder.create({
@@ -279,7 +279,7 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
       const CustomHandleBar = customHandleBarComponent;
       return hideHandleBar ? null : CustomHandleBar &&
         typeof CustomHandleBar == 'function' ? (
-        <View style={{alignSelf: 'center'}} {...getPanHandlersFor('handlebar')}>
+        <View style={{alignSelf: 'center'}} {...panHandlersFor('handlebar')}>
           <CustomHandleBar
             _animatedHeight={_animatedHeight}
             _animatedYTranslation={_animatedTranslateY}
@@ -288,7 +288,7 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
       ) : (
         <DefaultHandleBar
           style={handleBarStyle}
-          {...getPanHandlersFor('handlebar')}
+          {...panHandlersFor('handlebar')}
         />
       );
     };
@@ -299,8 +299,8 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
     let extractNativeTag = useCallback(
       // @ts-expect-error
       ({target: {_nativeTag: tag = undefined}}: LayoutChangeEvent) => {
-        !cachedContentWrapperNativeTag.current &&
-          (cachedContentWrapperNativeTag.current = tag);
+        if (!cachedContentWrapperNativeTag.current)
+          cachedContentWrapperNativeTag.current = tag;
       },
       [],
     );
@@ -438,7 +438,7 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
                 opacity: interpolatedOpacity,
               },
             ]}
-            {...getPanHandlersFor('contentwrapper')}>
+            {...panHandlersFor('contentwrapper')}>
             <>
               {/* Content Handle Bar */}
               <PolymorphicHandleBar />
