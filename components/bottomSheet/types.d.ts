@@ -1,11 +1,18 @@
 import {Animated, OpaqueColorValue, ViewProps, ViewStyle} from 'react-native';
-import {ANIMATIONS, CUSTOM_BACKDROP_POSITIONS} from '.';
+import {
+  ANIMATIONS,
+  BottomSheetProps,
+  CUSTOM_BACKDROP_POSITIONS,
+} from '../../types';
+import React from 'react';
 
-/**
- * Alias for `ANIMATIONS` to allow literal animation type string as prop
- * @alias ANIMATIONS
- */
-export type AnimationType = Lowercase<keyof typeof ANIMATIONS>;
+// short hand for toValue key of Animator methods
+export type ToValue = Animated.TimingAnimationConfig['toValue'];
+
+// this is to accomodate static `ANIMATIONS` property of BottomSheet function below
+export type BOTTOMSHEET = React.ForwardRefExoticComponent<
+  BottomSheetProps & React.RefAttributes<BottomSheetProps>
+> & {ANIMATIONS: typeof ANIMATIONS};
 
 /**
  * Props types for bottom sheet component
@@ -95,7 +102,7 @@ export interface BottomSheetProps {
 
   /**
    * When true, hides the handle bar. Handle bar is visible by default.
-   * 
+   *
    * `Note:` When true, custom handle bar component will also be hidden.
    *
    * `Default: false`
@@ -106,36 +113,36 @@ export interface BottomSheetProps {
   hideHandleBar?: boolean;
 
   /**
-     * Custom handle bar component to replace the default bottom sheet's handle bar.
-     *
-     * This component will be passed the animated `height` and `translateY` values of the bottom sheet,
-     * which can be used to interpolate or extended animations to its children.
-     *
-     * `Note:` Styles passed through `handleBarStyle` prop won't be applied.
-     *
-     * @example
-     * ```tsx
-     * // Below example will animate the custom handle bar's width as the 
-     * // bottom sheet is being dragged/panned down
-     * <BottomSheet
-          customHandleBarComponent={(props) => (
-            <Animated.View
-            style={{
-                height: 5,
-                backgroundColor: 'orange',
-                width: props._animatedYTranslation.interpolate({
-                  inputRange: [0, 25, 200],
-                  outputRange: [20, 50, 100],
-                }),
-              }}
-            />
-          )}>
-          ...
-        </BottomSheet>
-     * ```
-     * @type {React.FC<{animatedHeight: Animated.Value, animatedYTranslation:Animated.Value}>}
-     * 
-     */
+       * Custom handle bar component to replace the default bottom sheet's handle bar.
+       *
+       * This component will be passed the animated `height` and `translateY` values of the bottom sheet,
+       * which can be used to interpolate or extended animations to its children.
+       *
+       * `Note:` Styles passed through `handleBarStyle` prop won't be applied.
+       *
+       * @example
+       * ```tsx
+       * // Below example will animate the custom handle bar's width as the 
+       * // bottom sheet is being dragged/panned down
+       * <BottomSheet
+            customHandleBarComponent={(props) => (
+              <Animated.View
+              style={{
+                  height: 5,
+                  backgroundColor: 'orange',
+                  width: props._animatedYTranslation.interpolate({
+                    inputRange: [0, 25, 200],
+                    outputRange: [20, 50, 100],
+                  }),
+                }}
+              />
+            )}>
+            ...
+          </BottomSheet>
+       * ```
+       * @type {React.FC<{animatedHeight: Animated.Value, animatedYTranslation:Animated.Value}>}
+       * 
+       */
   customHandleBarComponent?: React.FC<{
     /**
      * Animated height of the bottom sheet when expanding
@@ -244,7 +251,7 @@ export interface BottomSheetProps {
 
   /**
    * Duration for sheet opening animation.
-   * 
+   *
    * `Default: 500`
    * @type number
    * @default 500
@@ -253,7 +260,7 @@ export interface BottomSheetProps {
 
   /**
    * Duration for sheet closing animation.
-   * 
+   *
    * `Default: 500`
    * @type number
    * @default 500

@@ -22,54 +22,20 @@ import {
   DEFAULT_CLOSE_ANIMATION_DURATION,
   DEFAULT_HEIGHT,
   DEFAULT_OPEN_ANIMATION_DURATION,
-} from './constant';
-import {BottomSheetProps} from './index.d';
-import DefaultHandleBar from './components/DefaultHandleBar';
-import Container from './components/Container';
-import normalizeHeight from './utils/normalizeHeight';
-import convertHeight from './utils/convertHeight';
-import useHandleKeyboardEvents from './hooks/useHandleKeyboardEvents';
-import useAnimatedValue from './hooks/useAnimatedValue';
-import Backdrop from './components/Backdrop';
-
-/**
- * Supported animation types
- */
-export enum ANIMATIONS {
-  SLIDE = 'slide',
-  SPRING = 'spring',
-  FADE = 'fade',
-}
-
-/**
- * Supported custom backdrop component position
- */
-export enum CUSTOM_BACKDROP_POSITIONS {
-  TOP = 'top',
-  BEHIND = 'behind',
-}
-
-/**
- * Bottom sheet's ref instance methods
- */
-export interface BottomSheetMethods {
-  /**
-   * Expands the bottom sheet to the `height` passed through props
-   */
-  open(): void;
-  /**
-   * Collapses the bottom sheet
-   */
-  close(): void;
-}
-
-// short hand for toValue key of Animator methods
-type ToValue = Animated.TimingAnimationConfig['toValue'];
-
-// this is to accomodate static `ANIMATIONS` property of BottomSheet function below
-type BOTTOMSHEET = React.ForwardRefExoticComponent<
-  BottomSheetProps & React.RefAttributes<BottomSheetMethods>
-> & {ANIMATIONS: typeof ANIMATIONS};
+} from '../../constant';
+import {
+  ANIMATIONS,
+  type BottomSheetMethods,
+  CUSTOM_BACKDROP_POSITIONS,
+} from '../../types';
+import DefaultHandleBar from '../defaultHandleBar';
+import Container from '../container';
+import normalizeHeight from '../../utils/normalizeHeight';
+import convertHeight from '../../utils/convertHeight';
+import useHandleKeyboardEvents from '../../hooks/useHandleKeyboardEvents';
+import useAnimatedValue from '../../hooks/useAnimatedValue';
+import Backdrop from '../backdrop';
+import type {BottomSheetProps, ToValue} from './types';
 
 /**
  * Main bottom sheet component

@@ -1,6 +1,5 @@
-import {View, ViewProps, ViewStyle} from 'react-native';
-
-type DefaultHandleBarProps = ViewProps;
+import {View} from 'react-native';
+import type {DefaultHandleBarProps} from './types';
 
 /**
  * This is the default handle bar component used when no custom handle bar component is provided

@@ -1,35 +1,7 @@
-import {
-  Animated,
-  GestureResponderEvent,
-  OpaqueColorValue,
-  StyleSheet,
-  View,
-} from 'react-native';
-import {CUSTOM_BACKDROP_POSITIONS} from '..';
-import AnimatedTouchableBackdropMask from './AnimatedTouchableBackdropMask';
-
-type Color =
-  | string
-  | Animated.Value
-  | Animated.AnimatedInterpolation<string | number>
-  | OpaqueColorValue
-  | undefined;
-
-type BackdropProps = {
-  BackdropComponent?: React.FunctionComponent<{
-    _animatedHeight: Animated.Value;
-  }>;
-  backdropPosition?: Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
-  sheetOpen: boolean;
-  containerHeight: number;
-  contentContainerHeight: number;
-  _animatedHeight: Animated.Value;
-  closeOnPress: boolean;
-  rippleColor: Color;
-  pressHandler: (evt: GestureResponderEvent) => void;
-  animatedBackdropOpacity: Animated.Value;
-  backdropColor: Color;
-};
+import {StyleSheet, View} from 'react-native';
+import AnimatedTouchableBackdropMask from '../animatedTouchableBackdropMask';
+import {CUSTOM_BACKDROP_POSITIONS} from '../../types';
+import type {BackdropProps} from './types';
 
 /**
  * Abstracted, polymorphic backdrop that handles custom and default backdrop

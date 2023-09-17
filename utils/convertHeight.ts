@@ -1,5 +1,5 @@
 import {Dimensions} from 'react-native';
-import {DEFAULT_HANDLE_BAR_DEFAULT_HEIGHT} from '../components/DefaultHandleBar';
+import {DEFAULT_HANDLE_BAR_DEFAULT_HEIGHT} from '../components/defaultHandleBar';
 
 /**
  * converts string `height` from percentage e.g `'50%'` to pixel unit e.g `320` relative to `containerHeight`,

@@ -1,32 +1,7 @@
 import {useEffect, useRef} from 'react';
-import {
-  Animated,
-  EmitterSubscription,
-  Keyboard,
-  useWindowDimensions,
-} from 'react-native';
-import {FALLBACK_CONTENT_WRAPPER_HEIGHT} from '../constant';
-
-type HookReturn = {
-  /**
-   * Removes all keyboard listeners, typically when sheet is closed
-   */
-  removeKeyboardListeners: () => void;
-};
-
-/**
- * Function type
- */
-type UseHandleKeyboardEvents = (
-  heightTo: number,
-  sheetOpen: boolean,
-  HeightAnimator: any,
-) => HookReturn;
-
-type HeightAnimationDriver = (
-  height: number,
-  duration: number,
-) => Animated.CompositeAnimation;
+import {EmitterSubscription, Keyboard, useWindowDimensions} from 'react-native';
+import {FALLBACK_CONTENT_WRAPPER_HEIGHT} from '../../constant';
+import type {HeightAnimationDriver, UseHandleKeyboardEvents} from './types';
 
 /**
  * Handles keyboard pop up adjusts sheet's layout when TextInput within
