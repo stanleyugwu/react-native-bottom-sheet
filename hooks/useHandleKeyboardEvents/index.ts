@@ -1,7 +1,12 @@
 import {useEffect, useRef} from 'react';
-import {EmitterSubscription, Keyboard, useWindowDimensions} from 'react-native';
+import {
+  EmitterSubscription,
+  Keyboard,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
 import {FALLBACK_CONTENT_WRAPPER_HEIGHT} from '../../constant';
-import type {HeightAnimationDriver, UseHandleKeyboardEvents} from './types';
+import type {HeightAnimationDriver, UseHandleKeyboardEvents} from './index.d';
 
 /**
  * Handles keyboard pop up adjusts sheet's layout when TextInput within
@@ -26,11 +31,16 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
       'keyboardDidShow',
       ({endCoordinates: {height: keyboardHeight}}) => {
         if (sheetOpen) {
-          const height = Math.max(
-            sheetHeight - keyboardHeight,
-            FALLBACK_CONTENT_WRAPPER_HEIGHT,
-          );
-          heightAnimationDriver(height, 200).start();
+          const heightDiff = sheetHeight - keyboardHeight;
+          const height = Math.max(heightDiff, FALLBACK_CONTENT_WRAPPER_HEIGHT);
+
+          // ios don't have adjustResize so we need to set sheet height to be taller than
+          // the keyboard
+          const calculatedHeight = Platform.select({
+            android: height,
+            ios: keyboardHeight + height,
+          });
+          heightAnimationDriver(calculatedHeight, 200).start();
         }
       },
     );

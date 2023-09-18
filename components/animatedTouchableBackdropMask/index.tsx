@@ -1,5 +1,5 @@
 import {Animated, Pressable, StyleSheet} from 'react-native';
-import {AnimatedTouchableBackdropMaskProps} from './types';
+import {AnimatedTouchableBackdropMaskProps} from './index.d';
 
 /**
  * Polymorphic and re-usable animated backdrop mask component

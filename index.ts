@@ -6,4 +6,4 @@ export {
   CUSTOM_BACKDROP_POSITIONS,
   type BottomSheetMethods,
 } from './types';
-export type {BottomSheetProps} from './components/bottomSheet/types';
+export type {BottomSheetProps} from './components/bottomSheet/index.d';

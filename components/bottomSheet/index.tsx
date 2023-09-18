@@ -23,11 +23,6 @@ import {
   DEFAULT_HEIGHT,
   DEFAULT_OPEN_ANIMATION_DURATION,
 } from '../../constant';
-import {
-  ANIMATIONS,
-  type BottomSheetMethods,
-  CUSTOM_BACKDROP_POSITIONS,
-} from '../../types';
 import DefaultHandleBar from '../defaultHandleBar';
 import Container from '../container';
 import normalizeHeight from '../../utils/normalizeHeight';
@@ -35,7 +30,14 @@ import convertHeight from '../../utils/convertHeight';
 import useHandleKeyboardEvents from '../../hooks/useHandleKeyboardEvents';
 import useAnimatedValue from '../../hooks/useAnimatedValue';
 import Backdrop from '../backdrop';
-import type {BottomSheetProps, ToValue} from './types';
+import {
+  type BottomSheetProps,
+  type ToValue,
+  ANIMATIONS,
+  type BottomSheetMethods,
+  CUSTOM_BACKDROP_POSITIONS,
+  BOTTOMSHEET,
+} from './index.d';
 
 /**
  * Main bottom sheet component

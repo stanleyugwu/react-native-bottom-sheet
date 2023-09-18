@@ -1,8 +1,9 @@
 import {Animated, OpaqueColorValue, ViewProps, ViewStyle} from 'react-native';
 import {
   ANIMATIONS,
-  BottomSheetProps,
+  type BottomSheetProps,
   CUSTOM_BACKDROP_POSITIONS,
+  type BottomSheetMethods,
 } from '../../types';
 import React from 'react';
 
@@ -267,3 +268,10 @@ export interface BottomSheetProps {
    */
   closeDuration?: number;
 }
+
+export {
+  ANIMATIONS,
+  BottomSheetProps,
+  CUSTOM_BACKDROP_POSITIONS,
+  BottomSheetMethods,
+};
