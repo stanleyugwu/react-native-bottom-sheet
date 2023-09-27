@@ -5,5 +5,5 @@ export {
   ANIMATIONS,
   CUSTOM_BACKDROP_POSITIONS,
   type BottomSheetMethods,
-} from './types';
+} from './types.d';
 export type {BottomSheetProps} from './components/bottomSheet/index.d';

@@ -1,4 +1,4 @@
-import {ANIMATIONS} from '../types';
+import {ANIMATIONS} from '../types.d';
 
 const DEFAULT_BACKDROP_MASK_COLOR = '#000a';
 const DEFAULT_HEIGHT = '50%';

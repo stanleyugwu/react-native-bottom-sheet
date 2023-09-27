@@ -4,7 +4,7 @@ import {
   type BottomSheetProps,
   CUSTOM_BACKDROP_POSITIONS,
   type BottomSheetMethods,
-} from '../../types';
+} from '../../types.d';
 import React from 'react';
 
 // short hand for toValue key of Animator methods
