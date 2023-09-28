@@ -2,10 +2,9 @@ import {useEffect, useRef} from 'react';
 import {
   EmitterSubscription,
   Keyboard,
-  Platform,
+  View,
   useWindowDimensions,
 } from 'react-native';
-import {FALLBACK_CONTENT_WRAPPER_HEIGHT} from '../../constant';
 import type {HeightAnimationDriver, UseHandleKeyboardEvents} from './index.d';
 
 /**
@@ -16,34 +15,55 @@ import type {HeightAnimationDriver, UseHandleKeyboardEvents} from './index.d';
  * @param {boolean} sheetOpen Indicates whether the sheet is open or closed
  * @param {HeightAnimationDriver} heightAnimationDriver Animator function to be called with new
  * sheet height when keyboard is out so it can adjust the sheet height with animation
+ * @param {React.MutableRefObject<View>} contentWrapperRef Reference to the content wrapper view
  */
 const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
   sheetHeight: number,
   sheetOpen: boolean,
   heightAnimationDriver: HeightAnimationDriver,
+  contentWrapperRef: React.MutableRefObject<View>,
 ) => {
   const SCREEN_HEIGHT = useWindowDimensions().height;
   const keyboardHideSubscription = useRef<EmitterSubscription>();
   const keyboardShowSubscription = useRef<EmitterSubscription>();
-
   useEffect(() => {
     keyboardShowSubscription.current = Keyboard.addListener(
       'keyboardDidShow',
       ({endCoordinates: {height: keyboardHeight}}) => {
         if (sheetOpen) {
-          const heightDiff = sheetHeight - keyboardHeight;
-          const height = Math.max(heightDiff, FALLBACK_CONTENT_WRAPPER_HEIGHT);
+          // Exaggeration of the actual height (24) of the autocorrect view
+          // that appears atop android keyboard
+          const keyboardAutoCorrectViewHeight = 50;
+          contentWrapperRef.current?.measure?.((...result) => {
+            const sheetYOffset = result[5]; // Y offset of the sheet after keyboard is out
+            const actualSheetHeight = SCREEN_HEIGHT - sheetYOffset; // new height of the sheet (after keyboard offset)
+            /**
+             * We determine soft input/keyboard mode based on the difference between the new sheet height and the
+             * initial height after keyboard is opened. If there's no much difference, it's adjustPan
+             * (keyboard overlays sheet), else it's adjustResize (sheet is pushed up)
+             */
+            const sheetIsOverlayed =
+              actualSheetHeight - sheetHeight < keyboardAutoCorrectViewHeight;
+            const remainingSpace = SCREEN_HEIGHT - keyboardHeight;
 
-          // ios don't have adjustResize so we need to set sheet height to be taller than
-          // the keyboard
-          const calculatedHeight = Platform.select({
-            android: height,
-            ios: keyboardHeight + height,
+            /**
+             * this is 50% of the remaining space (SCREEN_HEIGHT - keyboardHeight) that remains atop the keybaord
+             */
+            const fiftyPercent = 0.5 * remainingSpace;
+            const minSheetHeight = 50;
+            // allow very short sheet e.g 10 to increase to 50 and
+            // very long to clamp withing availablle space;
+            let newSheetHeight = Math.max(
+              minSheetHeight,
+              Math.min(sheetHeight, fiftyPercent),
+            );
+            if (sheetIsOverlayed) newSheetHeight += keyboardHeight;
+            heightAnimationDriver(newSheetHeight, 400).start();
           });
-          heightAnimationDriver(calculatedHeight, 200).start();
         }
       },
     );
+
     keyboardHideSubscription.current = Keyboard.addListener(
       'keyboardDidHide',
       evt => {
@@ -60,7 +80,7 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
   return {
     removeKeyboardListeners() {
       keyboardShowSubscription.current?.remove();
-      keyboardShowSubscription.current?.remove();
+      keyboardHideSubscription.current?.remove();
     },
   };
 };

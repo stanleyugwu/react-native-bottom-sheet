@@ -98,6 +98,8 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
     const _animatedHeight = useAnimatedValue(0);
     const _animatedTranslateY = useAnimatedValue(0);
 
+    const contentWrapperRef = useRef<View>();
+
     // Animation utility
     const Animators = useMemo(
       () => ({
@@ -189,6 +191,7 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
       convertedHeight,
       sheetOpen,
       Animators.animateHeight,
+      contentWrapperRef,
     );
 
     /**
@@ -350,6 +353,14 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
       hideBackdrop,
     ]);
 
+    // Children
+    const ChildNodes =
+      typeof Children == 'function' ? (
+        <Children _animatedHeight={_animatedHeight} />
+      ) : (
+        Children
+      );
+
     return (
       <>
         {typeof passedContainerHeight == 'string' ? (
@@ -389,6 +400,7 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
           )}
           {/* content container */}
           <Animated.View
+            ref={contentWrapperRef}
             key={'BottomSheetContentContainer'}
             onLayout={extractNativeTag}
             /**
@@ -407,15 +419,8 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
               },
             ]}
             {...panHandlersFor('contentwrapper')}>
-            <>
-              {/* Content Handle Bar */}
-              <PolymorphicHandleBar />
-              {typeof Children == 'function' ? (
-                <Children _animatedHeight={_animatedHeight} />
-              ) : (
-                Children
-              )}
-            </>
+            <PolymorphicHandleBar />
+            {ChildNodes}
           </Animated.View>
         </Container>
       </>
