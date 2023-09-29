@@ -192,12 +192,13 @@ interface BottomSheetProps {
   disableBodyPanning?: boolean;
 
   /**
-   * Ripple effect color of backdrop mask when touched.
-   * Works only on android and only if `closeOnBackdropPress` is true.
+   * When `closeOnBackdropPress` is `true`, color of the ripple effect that occurs when scrim or backdrop mask is pressed.
    *
-   * `Default: none`;
-   * @platform android
-   * @type string | OpaqueColorValue
+   * `Note:` Only works for Android
+   * 
+   * `Default: none` (i.e no ripple effect);
+   * @platform Android
+   * @type (string | OpaqueColorValue)
    * @default undefined
    */
   android_backdropMaskRippleColor?: string | OpaqueColorValue;
@@ -229,8 +230,8 @@ interface BottomSheetProps {
   customBackdropPosition?: Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
 
   /**
-   * Determines whether sheet is a modal. 
-   * 
+   * Determines whether sheet is a modal.
+   *
    * A modal sheet has a scrim or backdrop mask, while a standard (non-modal) sheet doesn't.
    *
    * `Note:` When false, this will also hide custom scrim/backdrop component supplied via `customBackdropComponent` prop.
@@ -283,6 +284,18 @@ interface BottomSheetProps {
    * @default {ANIMATIONS.SLIDE}
    */
   customEasingFunction?: AnimationEasingFunction;
+
+  /**
+   * Determines whether sheet will close when device back button is pressed.
+   * 
+   * `Note:` Only applies for Android
+   *
+   * `Default: true`
+   * @platform Android
+   * @type {boolean}
+   * @default {true}
+   */
+  android_closeOnBackPress?: boolean;
 }
 
 export {

@@ -38,6 +38,7 @@ import {
   CUSTOM_BACKDROP_POSITIONS,
   BOTTOMSHEET,
 } from './index.d';
+import useHandleAndroidBackButtonClose from '../../hooks/useHandleAndroidBackButtonClose';
 
 /**
  * Main bottom sheet component
@@ -65,6 +66,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       openDuration = DEFAULT_OPEN_ANIMATION_DURATION,
       closeDuration = DEFAULT_CLOSE_ANIMATION_DURATION,
       customEasingFunction,
+      android_closeOnBackPress = true,
     },
     ref,
   ) => {
@@ -96,6 +98,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const _animatedTranslateY = useAnimatedValue(0);
 
     const contentWrapperRef = useRef<View>();
+
+    /** cached _nativeTag property of content container */
+    const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
 
     // Animation utility
     const Animators = useMemo(
@@ -159,9 +164,6 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       [animationType, contentContainerStyle],
     );
 
-    /** cached _nativeTag property of content container */
-    const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
-
     /**
      * `height` prop converted from percentage e.g `'50%'` to pixel unit e.g `320`,
      * relative to `containerHeight` or `DEVICE_SCREEN_HEIGHT`.
@@ -186,6 +188,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       return newHeight;
     }, [containerHeight, height, animationType, sheetOpen]);
 
+    /**
+     * Handles keyboard pop up for both platforms and auto adjust sheet layout
+     * accordingly
+     */
     const {removeKeyboardListeners} = useHandleKeyboardEvents(
       convertedHeight,
       sheetOpen,
@@ -350,6 +356,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       containerHeight,
       modal,
     ]);
+
+    /**
+     * Handles hardware back button press for android
+     */
+    useHandleAndroidBackButtonClose(android_closeOnBackPress, closeBottomSheet);
 
     // Children
     const ChildNodes =
