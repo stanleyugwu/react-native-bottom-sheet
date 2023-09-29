@@ -77,16 +77,16 @@ interface BottomSheetProps {
   animationType?: AnimationType;
 
   /**
-   * Background color of the backdrop mask.
+   * Color of the scrim or backdrop mask when `modal` is true.
    *
-   * `Default: '#000a'`
+   * `Default: '#00000052'` (i.e black with 32% opacity)
    * @type {string | OpaqueColorValue}
-   * @default '#000a'
+   * @default '#00000052'
    */
   backdropMaskColor?: string | OpaqueColorValue;
 
   /**
-   * Determines whether the bottom sheet will close when the backdrop mask is pressed.
+   * Determines whether the bottom sheet will close when the scrim or backdrop mask is pressed.
    *
    * `Default: true`
    * @type {boolean}
@@ -105,31 +105,31 @@ interface BottomSheetProps {
   closeOnDragDown?: boolean;
 
   /**
-   * When true, hides the handle bar. Handle bar is visible by default.
+   * When true, hides the sheet's drag handle. The drag handle is visible by default.
    *
-   * `Note:` When true, custom handle bar component will also be hidden.
+   * `Note:` When true, custom drag handle component will also be hidden.
    *
    * `Default: false`
    *
    * @type {boolean}
    * @default false
    */
-  hideHandleBar?: boolean;
+  hideDragHandle?: boolean;
 
   /**
-       * Custom handle bar component to replace the default bottom sheet's handle bar.
+       * Custom drag handle component to replace the default bottom sheet's drag handle.
        *
        * This component will be passed the animated `height` and `translateY` values of the bottom sheet,
        * which can be used to interpolate or extended animations to its children.
        *
-       * `Note:` Styles passed through `handleBarStyle` prop won't be applied.
+       * `Note:` Styles passed through `dragHandleStyle` prop won't be applied to it.
        *
        * @example
        * ```tsx
-       * // Below example will animate the custom handle bar's width as the 
+       * // Below example will animate the custom drag handle's width as the 
        * // bottom sheet is being dragged/panned down
        * <BottomSheet
-            customHandleBarComponent={(props) => (
+            customDragHandleComponent={(props) => (
               <Animated.View
               style={{
                   height: 5,
@@ -147,7 +147,7 @@ interface BottomSheetProps {
        * @type {React.FC<{animatedHeight: Animated.Value, animatedYTranslation:Animated.Value}>}
        * 
        */
-  customHandleBarComponent?: React.FC<{
+  customDragHandleComponent?: React.FC<{
     /**
      * Animated height of the bottom sheet when expanding
      * @type {Animated.Value}
@@ -162,24 +162,24 @@ interface BottomSheetProps {
   }>;
 
   /**
-   * Extra styles to apply to handle bar.
+   * Extra styles to apply to the drag handle.
    *
-   * `Note:` These styles will be ignored when `customHandleBarComponent` is provided
+   * `Note:` These styles will be ignored when `customDragHandleComponent` is provided
    * @type {ViewStyle}
    */
-  handleBarStyle?: ViewStyle;
+  dragHandleStyle?: ViewStyle;
 
   /**
-   * When true, prevents the bottom sheet from being dragged/panned down on the handle bar.
-   * This prop also applies to custom handle bar component provided via `customHandleBarComponent` prop.
+   * When true, prevents the bottom sheet from being panned down by dragging its drag handle.
+   * This prop also applies to custom drag handle component provided via `customDragHandleComponent` prop.
    *
-   * The bottom sheet handle bar is draggable by default
+   * The bottom sheet is draggable by it's drag handle by default
    *
    * `Default:false`;
    * @type {boolean}
    * @default false
    */
-  disableHandleBarPanning?: boolean;
+  disableDragHandlePanning?: boolean;
 
   /**
    * When true, prevents the bottom sheet from being dragged/panned down on its body.
@@ -203,7 +203,7 @@ interface BottomSheetProps {
   android_backdropMaskRippleColor?: string | OpaqueColorValue;
 
   /**
-   * Custom component for sheet's backdrop mask.\
+   * Custom component for sheet's scrim or backdrop mask.\
    * `Note:` The component will be passed animated height value
    *
    * @type {React.Component}
@@ -229,15 +229,17 @@ interface BottomSheetProps {
   customBackdropPosition?: Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
 
   /**
-   * When true, disables/hides the backdrop mask component.
+   * Determines whether sheet is a modal. 
+   * 
+   * A modal sheet has a scrim or backdrop mask, while a standard (non-modal) sheet doesn't.
    *
-   * `Note:` This will also hide custom backdrop component supplied via `customBackdropComponent` prop.
+   * `Note:` When false, this will also hide custom scrim/backdrop component supplied via `customBackdropComponent` prop.
    *
-   * `Default: false`
+   * `Default: true`
    * @type boolean
-   * @default false
+   * @default true
    */
-  hideBackdrop?: boolean;
+  modal?: boolean;
 
   /**
    * Contents of the bottom sheet. Can be element(s) or a component.

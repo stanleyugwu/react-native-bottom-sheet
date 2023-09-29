@@ -50,18 +50,18 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       animationType = DEFAULT_ANIMATION,
       closeOnBackdropPress = true,
       height = DEFAULT_HEIGHT,
-      hideHandleBar = false,
+      hideDragHandle = false,
       android_backdropMaskRippleColor,
-      handleBarStyle,
+      dragHandleStyle,
       disableBodyPanning = false,
-      disableHandleBarPanning = false,
-      customHandleBarComponent,
+      disableDragHandlePanning = false,
+      customDragHandleComponent,
       style: contentContainerStyle,
       closeOnDragDown = true,
       containerHeight: passedContainerHeight,
       customBackdropComponent: CustomBackdropComponent,
       customBackdropPosition = CUSTOM_BACKDROP_POSITIONS.BEHIND,
-      hideBackdrop = false,
+      modal = true,
       openDuration = DEFAULT_OPEN_ANIMATION_DURATION,
       closeDuration = DEFAULT_CLOSE_ANIMATION_DURATION,
       customEasingFunction,
@@ -169,7 +169,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * or `height` changes
      */
     const convertedHeight = useMemo(() => {
-      const newHeight = convertHeight(height, containerHeight, hideHandleBar);
+      const newHeight = convertHeight(height, containerHeight, hideDragHandle);
 
       // FIXME: we use interface-undefined but existing property `_value` here and it's risky
       // @ts-expect-error
@@ -197,7 +197,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * Returns conditioned gesture handlers for content container and handle bar elements
      */
     const panHandlersFor = (view: 'handlebar' | 'contentwrapper') => {
-      if (view == 'handlebar' && disableHandleBarPanning) return null;
+      if (view == 'handlebar' && disableDragHandlePanning) return null;
       if (view == 'contentwrapper' && disableBodyPanning) return null;
       return PanResponder.create({
         onMoveShouldSetPanResponder: (evt, gestureState) => {
@@ -246,8 +246,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * Polymorphic content container handle bar component
      */
     const PolymorphicHandleBar: React.FunctionComponent<{}> = () => {
-      const CustomHandleBar = customHandleBarComponent;
-      return hideHandleBar ? null : CustomHandleBar &&
+      const CustomHandleBar = customDragHandleComponent;
+      return hideDragHandle ? null : CustomHandleBar &&
         typeof CustomHandleBar == 'function' ? (
         <View style={{alignSelf: 'center'}} {...panHandlersFor('handlebar')}>
           <CustomHandleBar
@@ -257,7 +257,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         </View>
       ) : (
         <DefaultHandleBar
-          style={handleBarStyle}
+          style={dragHandleStyle}
           {...panHandlersFor('handlebar')}
         />
       );
@@ -283,7 +283,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       // 2. if using fade animation, set content container height convertedHeight manually, animate backdrop.
       // else, animate backdrop and content container height in parallel
       Animators.animateContainerHeight(
-        hideBackdrop ? convertedHeight : containerHeight,
+        !modal ? convertedHeight : containerHeight,
       ).start();
       if (animationType === ANIMATIONS.FADE) {
         _animatedHeight.setValue(convertedHeight);
@@ -329,8 +329,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * Also auto adjusts when orientation changes
      */
     useLayoutEffect(() => {
-      if (hideBackdrop)
-        return; // no auto layout adjustment when backdrop is hidden
+      if (!modal) return; // no auto layout adjustment when backdrop is hidden
       else {
         if (typeof passedContainerHeight == 'number') {
           setContainerHeight(normalizeHeight(passedContainerHeight));
@@ -349,7 +348,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       SCREEN_HEIGHT,
       sheetOpen,
       containerHeight,
-      hideBackdrop,
+      modal,
     ]);
 
     // Children
@@ -373,8 +372,6 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             onLayout={containerViewLayoutHandler}
             style={{
               height: passedContainerHeight,
-              width: StyleSheet.hairlineWidth,
-              backgroundColor: 'red',
             }}
           />
         ) : null}
@@ -382,7 +379,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         {/* Container */}
         <Container style={{height: _animatedContainerHeight}}>
           {/* Backdrop */}
-          {hideBackdrop ? null : (
+          {modal ? (
             <Backdrop
               BackdropComponent={CustomBackdropComponent}
               _animatedHeight={_animatedHeight}
@@ -396,7 +393,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               rippleColor={android_backdropMaskRippleColor}
               sheetOpen={sheetOpen}
             />
-          )}
+          ) : null}
           {/* content container */}
           <Animated.View
             ref={contentWrapperRef}
@@ -409,7 +406,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
              * internal styles and transform properties override
              */
             style={[
-              styles.contentContainer,
+              materialStyles.contentContainer,
               contentContainerStyle,
               {
                 height: _animatedHeight,
@@ -430,13 +427,13 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 BottomSheet.displayName = 'BottomSheet';
 BottomSheet.ANIMATIONS = ANIMATIONS;
 
-const styles = StyleSheet.create({
+const materialStyles = StyleSheet.create({
   contentContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#F7F2FA',
     width: '100%',
     overflow: 'hidden',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
 });
 
