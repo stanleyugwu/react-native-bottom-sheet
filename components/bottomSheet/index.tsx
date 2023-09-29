@@ -42,11 +42,7 @@ import {
 /**
  * Main bottom sheet component
  */
-// @ts-expect-error Ts throws error because of static `ANIMATIONS`
-const BottomSheet: BOTTOMSHEET = forwardRef<
-  BottomSheetMethods,
-  BottomSheetProps
->(
+const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
   (
     {
       backdropMaskColor = DEFAULT_BACKDROP_MASK_COLOR,
@@ -68,6 +64,7 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
       hideBackdrop = false,
       openDuration = DEFAULT_OPEN_ANIMATION_DURATION,
       closeDuration = DEFAULT_CLOSE_ANIMATION_DURATION,
+      customEasingFunction,
     },
     ref,
   ) => {
@@ -139,13 +136,15 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
             useNativeDriver: false,
             duration: duration,
             easing:
-              animationType == ANIMATIONS.SLIDE
+              customEasingFunction && typeof customEasingFunction === 'function'
+                ? customEasingFunction
+                : animationType == ANIMATIONS.SLIDE
                 ? this._slideEasingFn
                 : this._springEasingFn,
           });
         },
       }),
-      [animationType],
+      [animationType, customEasingFunction],
     );
 
     const interpolatedOpacity = useMemo(
@@ -426,9 +425,9 @@ const BottomSheet: BOTTOMSHEET = forwardRef<
       </>
     );
   },
-);
+) as BOTTOMSHEET;
 
-// extend BottomSheet function with static animation type
+BottomSheet.displayName = 'BottomSheet';
 BottomSheet.ANIMATIONS = ANIMATIONS;
 
 const styles = StyleSheet.create({

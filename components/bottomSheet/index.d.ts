@@ -1,24 +1,27 @@
 import {Animated, OpaqueColorValue, ViewProps, ViewStyle} from 'react-native';
 import {
   ANIMATIONS,
-  type BottomSheetProps,
   CUSTOM_BACKDROP_POSITIONS,
   type BottomSheetMethods,
 } from '../../types.d';
 import React from 'react';
 
 // short hand for toValue key of Animator methods
-export type ToValue = Animated.TimingAnimationConfig['toValue'];
+type ToValue = Animated.TimingAnimationConfig['toValue'];
 
 // this is to accomodate static `ANIMATIONS` property of BottomSheet function below
-export type BOTTOMSHEET = React.ForwardRefExoticComponent<
-  BottomSheetProps & React.RefAttributes<BottomSheetProps>
+type BOTTOMSHEET = React.ForwardRefExoticComponent<
+  BottomSheetProps & React.RefAttributes<BottomSheetMethods>
 > & {ANIMATIONS: typeof ANIMATIONS};
+
+type AnimationType = ANIMATIONS | Lowercase<keyof typeof ANIMATIONS>;
+
+type AnimationEasingFunction = (x: number) => number;
 
 /**
  * Props types for bottom sheet component
  */
-export interface BottomSheetProps {
+interface BottomSheetProps {
   /**
    * Height of the bottom sheet when expanded. This value will be relative to `containerHeight`
    * if it's supplied, or the screen's height otherwise.
@@ -267,6 +270,17 @@ export interface BottomSheetProps {
    * @default 500
    */
   closeDuration?: number;
+
+  /**
+   * Custom easing function for driving sheet's animation.\
+   * If provided, easing function for passed `animationType` will be replaced with this,
+   * rendering `animationType` prop obsolete
+   *
+   * `Default: ANIMATIONS.SLIDE`
+   * @type {(AnimationEasingFunction)}
+   * @default {ANIMATIONS.SLIDE}
+   */
+  customEasingFunction?: AnimationEasingFunction;
 }
 
 export {
@@ -274,4 +288,7 @@ export {
   BottomSheetProps,
   CUSTOM_BACKDROP_POSITIONS,
   BottomSheetMethods,
+  BOTTOMSHEET,
+  AnimationEasingFunction,
+  ToValue,
 };
