@@ -132,7 +132,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
           return Animated.timing(_animatedBackdropMaskOpacity, {
             toValue: toValue,
-            useNativeDriver: false,
+            useNativeDriver: true,
             duration: _duration,
           });
         },
