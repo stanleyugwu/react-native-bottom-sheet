@@ -15,6 +15,7 @@ import {
   LayoutChangeEvent,
   useWindowDimensions,
   Keyboard,
+  Platform,
 } from 'react-native';
 import {
   DEFAULT_ANIMATION,
@@ -424,6 +425,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                 minHeight: _animatedHeight,
                 opacity: interpolatedOpacity,
               },
+              !modal ? materialStyles.contentContainerShadow : false,
             ]}
             {...panHandlersFor('contentwrapper')}>
             <PolymorphicHandleBar />
@@ -446,6 +448,18 @@ const materialStyles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
   },
+  contentContainerShadow: Platform.select({
+    android: {elevation: 7},
+    ios: {
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      shadowOpacity: 0.29,
+      shadowRadius: 4.65,
+    },
+  }),
 });
 
 export default BottomSheet;
