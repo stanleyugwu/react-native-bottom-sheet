@@ -153,12 +153,6 @@ interface BottomSheetProps {
      * @type {Animated.Value}
      */
     _animatedHeight: Animated.Value;
-
-    /**
-     * Animated **y-axis** translation (i.e `translateY`) of the bottom sheet when it's panned/dragged down/up
-     * @type {Animated.Value}
-     */
-    _animatedYTranslation: Animated.Value;
   }>;
 
   /**

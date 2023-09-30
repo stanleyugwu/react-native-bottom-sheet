@@ -257,10 +257,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       return hideDragHandle ? null : CustomHandleBar &&
         typeof CustomHandleBar == 'function' ? (
         <View style={{alignSelf: 'center'}} {...panHandlersFor('handlebar')}>
-          <CustomHandleBar
-            _animatedHeight={_animatedHeight}
-            _animatedYTranslation={_animatedTranslateY}
-          />
+          <CustomHandleBar _animatedHeight={_animatedHeight} />
         </View>
       ) : (
         <DefaultHandleBar
