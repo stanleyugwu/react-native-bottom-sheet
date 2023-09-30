@@ -132,7 +132,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
           return Animated.timing(_animatedBackdropMaskOpacity, {
             toValue: toValue,
-            useNativeDriver: true,
+            useNativeDriver: false,
             duration: _duration,
           });
         },
@@ -418,6 +418,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
              * internal styles and transform properties override
              */
             style={[
+              !modal ? materialStyles.contentContainerShadow : false,
               materialStyles.contentContainer,
               contentContainerStyle,
               {
@@ -425,7 +426,6 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                 minHeight: _animatedHeight,
                 opacity: interpolatedOpacity,
               },
-              !modal ? materialStyles.contentContainerShadow : false,
             ]}
             {...panHandlersFor('contentwrapper')}>
             <PolymorphicHandleBar />
