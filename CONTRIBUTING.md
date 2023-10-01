@@ -70,6 +70,10 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 - `docs`: changes into documentation, e.g. add usage example for the module..
 - `test`: adding or updating tests, e.g. add integration tests using detox.
 - `chore`: tooling changes, e.g. change CI config.
+- `perf`: changes that improve performance
+- `improvement`: changes that improve a current implementation
+- `style`: syntax formatting
+
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
 
@@ -114,3 +118,5 @@ When you're sending a pull request:
 - Review the documentation to make sure it looks good.
 - Follow the pull request template when opening a pull request.
 - For pull requests that change the API or implementation, discuss with maintainers first by opening an issue.
+
+Thanks for your contributions 💖

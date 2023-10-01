@@ -1,18 +1,18 @@
 import * as React from 'react';
-
-import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from '@devvie/bottom-sheet';
+import { StyleSheet, View, Text, Button } from 'react-native';
+import BottomSheet, { type BottomSheetMethods } from '@devvie/bottom-sheet';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
-
-  React.useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
+  const sheetRef = React.useRef<BottomSheetMethods>(null);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Button title="Open Sheet" onPress={() => sheetRef.current?.open()} />
+      <BottomSheet ref={sheetRef}>
+        <Text>
+          The 😎smart, 📦tiny, and 🎗flexible bottom sheet your app craves
+        </Text>
+      </BottomSheet>
     </View>
   );
 }
@@ -22,10 +22,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
   },
 });
