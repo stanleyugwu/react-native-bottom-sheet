@@ -1,7 +1,6 @@
 {
   "name": "@devvie/bottom-sheet",
-  "version": "0.1.0",
-  "description": "The tiny bottom sheet you desire",
+  "version": "The 😎smart , 📦tiny , and 🎗flexible bottom sheet your app craves 🚀",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
@@ -38,15 +37,24 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "bottom-sheet",
+    "react-native-bottom-sheet",
+    "devvie-bottom-sheet",
+    "@devvie/bottom-sheet",
+    "tiny-bottom-sheet",
+    "flexible-bottom-sheet",
+    "modal-bottom-sheet",
+    "sheet",
+    "ui-sheet"
   ],
-  "repository": "https://github.com/stanleyugwu/devvie-bottom-sheet",
+  "repository": "https://github.com/stanleyugwu/react-native-bottom-sheet",
   "author": "Devvie <stanleyugwu2018@gmail.com> (https://github.com/stanleyugwu)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/stanleyugwu/devvie-bottom-sheet/issues"
+    "url": "https://github.com/stanleyugwu/react-native-bottom-sheet/issues"
   },
-  "homepage": "https://github.com/stanleyugwu/devvie-bottom-sheet#readme",
+  "homepage": "https://github.com/stanleyugwu/react-native-bottom-sheet#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
