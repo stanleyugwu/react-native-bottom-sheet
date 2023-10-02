@@ -1,6 +1,6 @@
 import {useEffect, useRef} from 'react';
 import {
-  EmitterSubscription,
+  type EmitterSubscription,
   Keyboard,
   View,
   useWindowDimensions,
@@ -21,7 +21,7 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
   sheetHeight: number,
   sheetOpen: boolean,
   heightAnimationDriver: HeightAnimationDriver,
-  contentWrapperRef: React.MutableRefObject<View>,
+  contentWrapperRef: React.RefObject<View>,
 ) => {
   const SCREEN_HEIGHT = useWindowDimensions().height;
   const keyboardHideSubscription = useRef<EmitterSubscription>();

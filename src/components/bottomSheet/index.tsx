@@ -12,7 +12,7 @@ import {
   View,
   PanResponder,
   StyleSheet,
-  LayoutChangeEvent,
+  type LayoutChangeEvent,
   useWindowDimensions,
   Keyboard,
   Platform,
@@ -37,7 +37,7 @@ import {
   ANIMATIONS,
   type BottomSheetMethods,
   CUSTOM_BACKDROP_POSITIONS,
-  BOTTOMSHEET,
+  type BOTTOMSHEET,
 } from './index.d';
 import useHandleAndroidBackButtonClose from '../../hooks/useHandleAndroidBackButtonClose';
 
@@ -69,7 +69,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       customEasingFunction,
       android_closeOnBackPress = true,
     },
-    ref,
+    ref
   ) => {
     /**
      * ref instance callable methods
@@ -96,9 +96,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const _animatedContainerHeight = useAnimatedValue(0);
     const _animatedBackdropMaskOpacity = useAnimatedValue(0);
     const _animatedHeight = useAnimatedValue(0);
-    const _animatedTranslateY = useAnimatedValue(0);
 
-    const contentWrapperRef = useRef<View>();
+    const contentWrapperRef = useRef<View>(null);
 
     /** cached _nativeTag property of content container */
     const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
@@ -150,7 +149,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           });
         },
       }),
-      [animationType, customEasingFunction],
+      [animationType, customEasingFunction]
     );
 
     const interpolatedOpacity = useMemo(
@@ -162,7 +161,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               extrapolate: 'clamp',
             })
           : contentContainerStyle?.opacity,
-      [animationType, contentContainerStyle],
+      [animationType, contentContainerStyle]
     );
 
     /**
@@ -183,7 +182,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         else
           Animators.animateHeight(
             newHeight,
-            newHeight > curHeight ? openDuration : closeDuration,
+            newHeight > curHeight ? openDuration : closeDuration
           ).start();
       }
       return newHeight;
@@ -193,11 +192,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * Handles keyboard pop up for both platforms and auto adjust sheet layout
      * accordingly
      */
-    const {removeKeyboardListeners} = useHandleKeyboardEvents(
+    const { removeKeyboardListeners } = useHandleKeyboardEvents(
       convertedHeight,
       sheetOpen,
       Animators.animateHeight,
-      contentWrapperRef,
+      contentWrapperRef
     );
 
     /**
@@ -242,7 +241,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             if (animationType != ANIMATIONS.FADE)
               Animators.animateHeight(
                 convertedHeight,
-                openDuration / 2,
+                openDuration / 2
               ).start();
           }
         },
@@ -256,7 +255,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       const CustomHandleBar = customDragHandleComponent;
       return hideDragHandle ? null : CustomHandleBar &&
         typeof CustomHandleBar == 'function' ? (
-        <View style={{alignSelf: 'center'}} {...panHandlersFor('handlebar')}>
+        <View style={{ alignSelf: 'center' }} {...panHandlersFor('handlebar')}>
           <CustomHandleBar _animatedHeight={_animatedHeight} />
         </View>
       ) : (
@@ -272,11 +271,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     let extractNativeTag = useCallback(
       // @ts-expect-error
-      ({target: {_nativeTag: tag = undefined}}: LayoutChangeEvent) => {
+      ({ target: { _nativeTag: tag = undefined } }: LayoutChangeEvent) => {
         if (!cachedContentWrapperNativeTag.current)
           cachedContentWrapperNativeTag.current = tag;
       },
-      [],
+      []
     );
 
     /**
@@ -287,7 +286,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       // 2. if using fade animation, set content container height convertedHeight manually, animate backdrop.
       // else, animate backdrop and content container height in parallel
       Animators.animateContainerHeight(
-        !modal ? convertedHeight : containerHeight,
+        !modal ? convertedHeight : containerHeight
       ).start();
       if (animationType === ANIMATIONS.FADE) {
         _animatedHeight.setValue(convertedHeight);
@@ -303,7 +302,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       // 1. fade backdrop
       // 2. if using fade animation, close container, set content wrapper height to 0.
       // else animate content container height & container height to 0, in sequence
-      Animators.animateBackdropMaskOpacity(0, closeDuration).start(anim => {
+      Animators.animateBackdropMaskOpacity(0, closeDuration).start((anim) => {
         if (anim.finished) {
           if (animationType == ANIMATIONS.FADE) {
             Animators.animateContainerHeight(0).start();
@@ -386,7 +385,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         ) : null}
 
         {/* Container */}
-        <Container style={{height: _animatedContainerHeight}}>
+        <Container style={{ height: _animatedContainerHeight }}>
           {/* Backdrop */}
           {modal ? (
             <Backdrop
@@ -424,14 +423,15 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                 opacity: interpolatedOpacity,
               },
             ]}
-            {...panHandlersFor('contentwrapper')}>
+            {...panHandlersFor('contentwrapper')}
+          >
             <PolymorphicHandleBar />
             {ChildNodes}
           </Animated.View>
         </Container>
       </>
     );
-  },
+  }
 ) as BOTTOMSHEET;
 
 BottomSheet.displayName = 'BottomSheet';
@@ -445,18 +445,20 @@ const materialStyles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
   },
-  contentContainerShadow: Platform.select({
-    android: {elevation: 7},
-    ios: {
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 3,
-      },
-      shadowOpacity: 0.29,
-      shadowRadius: 4.65,
-    },
-  }),
+  contentContainerShadow:
+    Platform.OS === 'android'
+      ? {
+          elevation: 7,
+        }
+      : {
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 3,
+          },
+          shadowOpacity: 0.29,
+          shadowRadius: 4.65,
+        },
 });
 
 export default BottomSheet;

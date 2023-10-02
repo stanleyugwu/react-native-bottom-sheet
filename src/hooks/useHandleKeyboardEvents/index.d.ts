@@ -19,7 +19,7 @@ export type UseHandleKeyboardEvents = (
   /** function that can drive/animate sheet height */
   SheetHeightAnimationDriver: HeightAnimationDriver,
   /** ref to the content wrapper view for calculating sheet offset when keyboard is out */
-  contentWrapperRef:React.MutableRefObject<View>
+  contentWrapperRef:React.RefObject<View>
 ) => HookReturn;
 
 export type HeightAnimationDriver = (
