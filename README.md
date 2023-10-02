@@ -145,16 +145,31 @@ Android            |  iOS
 Android            |  iOS
 :-------------------------:|:-------------------------:
  ![Preview for scroll handling (Android)](./previews/Android/Nested%20Scroll.gif) |  ![Preview for scroll handling (iOS)](./previews/iOS/Nested%20List.gif)
+
 ### 3️⃣ Auto adjusts layout when `height` and `containerHeight` props change (_automatic behavior_)
-![Auto adjust height](./previews/iOS/Detect%20Height.gif)
+<p float="left">
+  <img src="./previews/iOS/Detect%20Height.gif" width="400" />
+</p>
+
 ### 4️⃣ Extend sheet height when its content is scrolled
-![Extend on scroll](./previews/iOS/Extend%20on%20scroll.gif)
+<p float="left">
+  <img src="./previews/iOS/Extend%20on%20scroll.gif" width="400" />
+</p>
+
 ### 5️⃣ Use as `SnackBar`
-![Snackbar](./previews/Android/Snack%20Bar.gif)
+<p float="left">
+  <img src="./previews/Android/Snack%20Bar.gif" width="400" />
+</p>
+
 ### 6️⃣ Custom Drag Handle Animation Interpolation
-![Drag handle animation](./previews/Android/Drag%20Handle%20Animation.gif)
+<p float="left">
+  <img src="./previews/Android/Drag%20Handle%20Animation.gif" width="400" />
+</p>
+
 ### 7️⃣ Custom Scrim/Backdrop Mask
-![Custom scrim](./previews/Android/Custom%20Scrim.gif)
+<p float="left">
+  <img src="./previews/Android/Custom%20Scrim.gif" width="400" />
+</p>
 
 #### _More Examples and code samples comign soon..._
 
