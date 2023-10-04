@@ -3,6 +3,10 @@
 The smart 😎, tiny 📦, and flexible 🎗 bottom sheet your app craves 🚀
 
 ![Preview for Android & iOS](./previews/Combined.gif)
+#### Web Preview
+<p float="left">
+  <img src="./previews/Web.png" width="400" />
+</p>
 
 ## ✨Features
 
