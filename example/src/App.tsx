@@ -9,7 +9,7 @@ export default function App() {
     <View style={styles.container}>
       <Button title="Open Sheet" onPress={() => sheetRef.current?.open()} />
       <BottomSheet ref={sheetRef}>
-        <Text>
+        <Text style={styles.text}>
           The 😎smart, 📦tiny, and 🎗flexible bottom sheet your app craves
         </Text>
       </BottomSheet>
@@ -18,6 +18,12 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  text: {
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '700',
+    padding: 20,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
