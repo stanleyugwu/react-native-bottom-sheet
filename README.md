@@ -1,4 +1,12 @@
 # React Native Bottom Sheet 💖
+![GitHub](https://img.shields.io/github/license/stanleyugwu/react-native-bottom-sheet?style=plastic&color=%23ffaff2)
+![npm bundle size (scoped)](https://img.shields.io/bundlephobia/minzip/devvie/bottom-sheet?style=plastic&logo=npm&label=bundle%20size&color=%23ffabf7)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/stanleyugwu/react-native-bottom-sheet/ci.yml?color=%23fea9f8)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/stanleyugwu/react-native-bottom-sheet?color=%23fea9f8)
+![Static Badge](https://img.shields.io/badge/Expo_Support-ffabf7?style=plastic&logo=expo)
+
+
+
 
 The smart 😎, tiny 📦, and flexible 🎗 bottom sheet your app craves 🚀
 
