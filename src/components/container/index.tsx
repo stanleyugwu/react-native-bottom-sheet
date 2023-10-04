@@ -1,5 +1,6 @@
-import {forwardRef} from 'react';
-import {Animated, StyleSheet, View} from 'react-native';
+import React from 'react';
+import { forwardRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 
 /**
  * This is the overall container view of the bottom sheet
@@ -7,7 +8,7 @@ import {Animated, StyleSheet, View} from 'react-native';
 const Container = forwardRef<
   View,
   Animated.ComponentProps<typeof Animated.View>
->(({style, ...otherProps}, ref) => (
+>(({ style, ...otherProps }, ref) => (
   <Animated.View ref={ref} style={[styles.container, style]} {...otherProps} />
 ));
 

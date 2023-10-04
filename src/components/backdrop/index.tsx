@@ -1,7 +1,8 @@
-import {StyleSheet, View} from 'react-native';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import AnimatedTouchableBackdropMask from '../animatedTouchableBackdropMask';
-import {CUSTOM_BACKDROP_POSITIONS} from '../../types.d';
-import type {BackdropProps} from './index.d';
+import { CUSTOM_BACKDROP_POSITIONS } from '../../types.d';
+import type { BackdropProps } from './index.d';
 
 /**
  * Abstracted, polymorphic backdrop that handles custom and default backdrop
@@ -18,14 +19,17 @@ const Backdrop = ({
   pressHandler,
   animatedBackdropOpacity,
   backdropColor,
-}: BackdropProps) =>
-  BackdropComponent ? (
+}: BackdropProps) => {
+  const heightStyle = sheetOpen ? containerHeight - contentContainerHeight : 0;
+
+  return BackdropComponent ? (
     <View
       style={
         backdropPosition === CUSTOM_BACKDROP_POSITIONS.BEHIND
           ? StyleSheet.absoluteFillObject
-          : {height: sheetOpen ? containerHeight - contentContainerHeight : 0}
-      }>
+          : { height: heightStyle }
+      }
+    >
       <BackdropComponent _animatedHeight={_animatedHeight} />
     </View>
   ) : closeOnPress ? (
@@ -50,5 +54,5 @@ const Backdrop = ({
       key={'TouchableBackdropMask'}
     />
   );
-
+};
 export default Backdrop;

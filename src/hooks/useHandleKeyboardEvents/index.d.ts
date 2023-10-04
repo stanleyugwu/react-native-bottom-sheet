@@ -1,5 +1,5 @@
 import React from 'react';
-import {Animated, View} from 'react-native';
+import { Animated, View } from 'react-native';
 
 export type HookReturn = {
   /**
@@ -19,10 +19,10 @@ export type UseHandleKeyboardEvents = (
   /** function that can drive/animate sheet height */
   SheetHeightAnimationDriver: HeightAnimationDriver,
   /** ref to the content wrapper view for calculating sheet offset when keyboard is out */
-  contentWrapperRef:React.RefObject<View>
+  contentWrapperRef: React.RefObject<View>
 ) => HookReturn;
 
 export type HeightAnimationDriver = (
   height: number,
-  duration: number,
+  duration: number
 ) => Animated.CompositeAnimation;

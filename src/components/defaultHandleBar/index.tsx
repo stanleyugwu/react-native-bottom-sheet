@@ -1,22 +1,22 @@
-import {StyleSheet, View} from 'react-native';
-import type {DefaultHandleBarProps} from './index.d';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import type { DefaultHandleBarProps } from './index.d';
 
 /**
  * This is the default handle bar component used when no custom handle bar component is provided
  */
-const DefaultHandleBar = ({style, ...otherProps}: DefaultHandleBarProps) => (
-  <View
-    style={{
-      padding: 18,
-      width: 50,
-      alignSelf: 'center',
-    }}
-    {...otherProps}>
+const DefaultHandleBar = ({ style, ...otherProps }: DefaultHandleBarProps) => (
+  <View style={materialStyles.dragHandleContainer} {...otherProps}>
     <View style={[materialStyles.dragHandle, style]} />
   </View>
 );
 
 const materialStyles = StyleSheet.create({
+  dragHandleContainer: {
+    padding: 18,
+    width: 50,
+    alignSelf: 'center',
+  },
   dragHandle: {
     height: 4,
     width: 32,

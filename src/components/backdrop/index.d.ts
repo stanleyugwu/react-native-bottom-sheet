@@ -1,6 +1,10 @@
-import React from "react";
-import { Animated, GestureResponderEvent, OpaqueColorValue } from "react-native";
-import { CUSTOM_BACKDROP_POSITIONS } from "../bottomSheet";
+import React from 'react';
+import {
+  Animated,
+  GestureResponderEvent,
+  OpaqueColorValue,
+} from 'react-native';
+import { CUSTOM_BACKDROP_POSITIONS } from '../bottomSheet';
 
 export type Color =
   | string

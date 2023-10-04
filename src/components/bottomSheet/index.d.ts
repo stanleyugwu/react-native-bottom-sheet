@@ -1,4 +1,4 @@
-import {Animated, OpaqueColorValue, ViewProps, ViewStyle} from 'react-native';
+import { Animated, OpaqueColorValue, ViewProps, ViewStyle } from 'react-native';
 import {
   ANIMATIONS,
   CUSTOM_BACKDROP_POSITIONS,
@@ -12,7 +12,7 @@ type ToValue = Animated.TimingAnimationConfig['toValue'];
 // this is to accomodate static `ANIMATIONS` property of BottomSheet function below
 type BOTTOMSHEET = React.ForwardRefExoticComponent<
   BottomSheetProps & React.RefAttributes<BottomSheetMethods>
-> & {ANIMATIONS: typeof ANIMATIONS};
+> & { ANIMATIONS: typeof ANIMATIONS };
 
 type AnimationType = ANIMATIONS | Lowercase<keyof typeof ANIMATIONS>;
 
@@ -189,7 +189,7 @@ interface BottomSheetProps {
    * When `closeOnBackdropPress` is `true`, color of the ripple effect that occurs when scrim or backdrop mask is pressed.
    *
    * `Note:` Only works for Android
-   * 
+   *
    * `Default: none` (i.e no ripple effect);
    * @platform Android
    * @type (string | OpaqueColorValue)
@@ -248,7 +248,7 @@ interface BottomSheetProps {
    */
   children:
     | ViewProps['children']
-    | React.FunctionComponent<{_animatedHeight: Animated.Value}>;
+    | React.FunctionComponent<{ _animatedHeight: Animated.Value }>;
 
   /**
    * Duration for sheet opening animation.
@@ -281,7 +281,7 @@ interface BottomSheetProps {
 
   /**
    * Determines whether sheet will close when device back button is pressed.
-   * 
+   *
    * `Note:` Only applies for Android
    *
    * `Default: true`

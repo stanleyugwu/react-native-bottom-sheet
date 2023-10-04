@@ -1,11 +1,11 @@
-import {useEffect, useRef} from 'react';
+import { useEffect, useRef } from 'react';
 import {
   type EmitterSubscription,
   Keyboard,
   View,
   useWindowDimensions,
 } from 'react-native';
-import type {HeightAnimationDriver, UseHandleKeyboardEvents} from './index.d';
+import type { HeightAnimationDriver, UseHandleKeyboardEvents } from './index.d';
 
 /**
  * Handles keyboard pop up adjusts sheet's layout when TextInput within
@@ -21,7 +21,7 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
   sheetHeight: number,
   sheetOpen: boolean,
   heightAnimationDriver: HeightAnimationDriver,
-  contentWrapperRef: React.RefObject<View>,
+  contentWrapperRef: React.RefObject<View>
 ) => {
   const SCREEN_HEIGHT = useWindowDimensions().height;
   const keyboardHideSubscription = useRef<EmitterSubscription>();
@@ -29,7 +29,7 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
   useEffect(() => {
     keyboardShowSubscription.current = Keyboard.addListener(
       'keyboardDidShow',
-      ({endCoordinates: {height: keyboardHeight}}) => {
+      ({ endCoordinates: { height: keyboardHeight } }) => {
         if (sheetOpen) {
           // Exaggeration of the actual height (24) of the autocorrect view
           // that appears atop android keyboard
@@ -55,27 +55,33 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
             // very long to clamp withing availablle space;
             let newSheetHeight = Math.max(
               minSheetHeight,
-              Math.min(sheetHeight, fiftyPercent),
+              Math.min(sheetHeight, fiftyPercent)
             );
             if (sheetIsOverlayed) newSheetHeight += keyboardHeight;
             heightAnimationDriver(newSheetHeight, 400).start();
           });
         }
-      },
+      }
     );
 
     keyboardHideSubscription.current = Keyboard.addListener(
       'keyboardDidHide',
-      evt => {
+      (_) => {
         if (sheetOpen) heightAnimationDriver(sheetHeight, 200).start();
-      },
+      }
     );
 
     return () => {
       keyboardHideSubscription.current?.remove();
       keyboardShowSubscription.current?.remove();
     };
-  }, [sheetHeight, SCREEN_HEIGHT, sheetOpen, heightAnimationDriver]);
+  }, [
+    sheetHeight,
+    SCREEN_HEIGHT,
+    sheetOpen,
+    heightAnimationDriver,
+    contentWrapperRef,
+  ]);
 
   return {
     removeKeyboardListeners() {

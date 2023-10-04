@@ -1,12 +1,3 @@
-import React from 'react';
-import {
-  Animated,
-  GestureResponderEvent,
-  OpaqueColorValue,
-  ViewProps,
-  ViewStyle,
-} from 'react-native';
-
 /**
  * Supported animation types
  */

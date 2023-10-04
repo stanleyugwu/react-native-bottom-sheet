@@ -1,6 +1,6 @@
-import {useEffect, useRef} from 'react';
-import {BackHandler, NativeEventSubscription} from 'react-native';
-import type {UseHandleAndroidBackButtonClose} from './index.d';
+import { useEffect, useRef } from 'react';
+import { BackHandler, type NativeEventSubscription } from 'react-native';
+import type { UseHandleAndroidBackButtonClose } from './index.d';
 
 /**
  * Handles closing sheet for android hardware back button press event
@@ -10,7 +10,7 @@ import type {UseHandleAndroidBackButtonClose} from './index.d';
  */
 const useHandleAndroidBackButtonClose: UseHandleAndroidBackButtonClose = (
   shouldClose = true,
-  closeSheet,
+  closeSheet
 ) => {
   const handler = useRef<NativeEventSubscription>();
   useEffect(() => {
@@ -20,13 +20,13 @@ const useHandleAndroidBackButtonClose: UseHandleAndroidBackButtonClose = (
         () => {
           closeSheet?.();
           return true;
-        },
+        }
       );
     }
     return () => {
       handler.current?.remove?.();
     };
-  }, [shouldClose]);
+  }, [shouldClose, closeSheet]);
 };
 
 export default useHandleAndroidBackButtonClose;

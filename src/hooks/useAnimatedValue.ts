@@ -1,5 +1,5 @@
-import {useRef} from 'react';
-import {Animated} from 'react-native';
+import { useRef } from 'react';
+import { Animated } from 'react-native';
 
 /**
  * Convenience hook for abstracting/storing Animated values.

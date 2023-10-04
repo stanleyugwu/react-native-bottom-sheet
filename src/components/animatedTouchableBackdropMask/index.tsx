@@ -1,5 +1,6 @@
-import {Animated, Pressable, StyleSheet} from 'react-native';
-import {AnimatedTouchableBackdropMaskProps} from './index.d';
+import React from 'react';
+import { Animated, Pressable, StyleSheet } from 'react-native';
+import { type AnimatedTouchableBackdropMaskProps } from './index.d';
 
 /**
  * Polymorphic and re-usable animated backdrop mask component
@@ -12,7 +13,6 @@ const AnimatedTouchableBackdropMask = ({
   isPressable,
   pressHandler,
   android_touchRippleColor,
-  children,
   ...otherProps
 }: AnimatedTouchableBackdropMaskProps) => {
   return isPressable ? (
@@ -31,6 +31,7 @@ const AnimatedTouchableBackdropMask = ({
       {...otherProps}
     />
   ) : (
+    // @ts-expect-error
     <Animated.View
       style={[style, styles.sharedBackdropStyle]}
       {...otherProps}

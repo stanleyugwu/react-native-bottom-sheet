@@ -143,25 +143,31 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             easing:
               customEasingFunction && typeof customEasingFunction === 'function'
                 ? customEasingFunction
-                : animationType == ANIMATIONS.SLIDE
+                : animationType === ANIMATIONS.SLIDE
                 ? this._slideEasingFn
                 : this._springEasingFn,
           });
         },
       }),
-      [animationType, customEasingFunction]
+      [
+        animationType,
+        customEasingFunction,
+        _animatedContainerHeight,
+        _animatedBackdropMaskOpacity,
+        _animatedHeight,
+      ]
     );
 
     const interpolatedOpacity = useMemo(
       () =>
-        animationType == ANIMATIONS.FADE
+        animationType === ANIMATIONS.FADE
           ? _animatedBackdropMaskOpacity.interpolate({
               inputRange: [0, 0.5, 1],
               outputRange: [0, 0.3, 1],
               extrapolate: 'clamp',
             })
           : contentContainerStyle?.opacity,
-      [animationType, contentContainerStyle]
+      [animationType, contentContainerStyle, _animatedBackdropMaskOpacity]
     );
 
     /**
@@ -177,7 +183,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       // @ts-expect-error
       const curHeight = _animatedHeight._value;
       if (sheetOpen && newHeight !== curHeight) {
-        if (animationType == ANIMATIONS.FADE)
+        if (animationType === ANIMATIONS.FADE)
           _animatedHeight.setValue(newHeight);
         else
           Animators.animateHeight(
@@ -186,7 +192,17 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           ).start();
       }
       return newHeight;
-    }, [containerHeight, height, animationType, sheetOpen]);
+    }, [
+      containerHeight,
+      height,
+      animationType,
+      sheetOpen,
+      Animators,
+      _animatedHeight,
+      closeDuration,
+      hideDragHandle,
+      openDuration,
+    ]);
 
     /**
      * Handles keyboard pop up for both platforms and auto adjust sheet layout
@@ -203,10 +219,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * Returns conditioned gesture handlers for content container and handle bar elements
      */
     const panHandlersFor = (view: 'handlebar' | 'contentwrapper') => {
-      if (view == 'handlebar' && disableDragHandlePanning) return null;
-      if (view == 'contentwrapper' && disableBodyPanning) return null;
+      if (view === 'handlebar' && disableDragHandlePanning) return null;
+      if (view === 'contentwrapper' && disableBodyPanning) return null;
       return PanResponder.create({
-        onMoveShouldSetPanResponder: (evt, gestureState) => {
+        onMoveShouldSetPanResponder: (evt) => {
           /**
            * `FiberNode._nativeTag` is stable across renders so we use it to determine
            * whether content container or it's child should respond to touch move gesture.
@@ -216,29 +232,29 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
            * the event target's _nativeTag, if they match, then content container should respond, else its children should.
            * Also, when the target is the handle bar, we le it handle geture unless panning is disabled through props
            */
-          return view == 'handlebar'
+          return view === 'handlebar'
             ? true
-            : cachedContentWrapperNativeTag.current ==
+            : cachedContentWrapperNativeTag.current ===
                 // @ts-expect-error
                 evt?.target?._nativeTag;
         },
-        onPanResponderMove: (e, gestureState) => {
+        onPanResponderMove: (_, gestureState) => {
           if (gestureState.dy > 0) {
             // backdrop opacity relative to the height of the content sheet
             // to makes the backdrop more transparent as you drag the content sheet down
             const relativeOpacity = 1 - gestureState.dy / convertedHeight;
             _animatedBackdropMaskOpacity.setValue(relativeOpacity);
 
-            if (animationType != ANIMATIONS.FADE)
+            if (animationType !== ANIMATIONS.FADE)
               _animatedHeight.setValue(convertedHeight - gestureState.dy);
           }
         },
-        onPanResponderRelease(e, gestureState) {
+        onPanResponderRelease(_, gestureState) {
           if (gestureState.dy >= convertedHeight / 3 && closeOnDragDown) {
             closeBottomSheet();
           } else {
             _animatedBackdropMaskOpacity.setValue(1);
-            if (animationType != ANIMATIONS.FADE)
+            if (animationType !== ANIMATIONS.FADE)
               Animators.animateHeight(
                 convertedHeight,
                 openDuration / 2
@@ -251,10 +267,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     /**
      * Polymorphic content container handle bar component
      */
+    /* eslint-disable react/no-unstable-nested-components, react-native/no-inline-styles */
     const PolymorphicHandleBar: React.FunctionComponent<{}> = () => {
       const CustomHandleBar = customDragHandleComponent;
       return hideDragHandle ? null : CustomHandleBar &&
-        typeof CustomHandleBar == 'function' ? (
+        typeof CustomHandleBar === 'function' ? (
         <View style={{ alignSelf: 'center' }} {...panHandlersFor('handlebar')}>
           <CustomHandleBar _animatedHeight={_animatedHeight} />
         </View>
@@ -265,6 +282,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         />
       );
     };
+    /* eslint-enable react/no-unstable-nested-components, react-native/no-inline-styles */
 
     /**
      * Extracts and caches the _nativeTag property of ContentWrapper
@@ -304,7 +322,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       // else animate content container height & container height to 0, in sequence
       Animators.animateBackdropMaskOpacity(0, closeDuration).start((anim) => {
         if (anim.finished) {
-          if (animationType == ANIMATIONS.FADE) {
+          if (animationType === ANIMATIONS.FADE) {
             Animators.animateContainerHeight(0).start();
             _animatedHeight.setValue(0);
           } else {
@@ -334,13 +352,13 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     useLayoutEffect(() => {
       if (!modal) return; // no auto layout adjustment when backdrop is hidden
       else {
-        if (typeof passedContainerHeight == 'number') {
+        if (typeof passedContainerHeight === 'number') {
           setContainerHeight(normalizeHeight(passedContainerHeight));
           if (sheetOpen)
             _animatedContainerHeight.setValue(passedContainerHeight);
         } else if (
-          typeof passedContainerHeight == 'undefined' &&
-          containerHeight != SCREEN_HEIGHT
+          typeof passedContainerHeight === 'undefined' &&
+          containerHeight !== SCREEN_HEIGHT
         ) {
           setContainerHeight(SCREEN_HEIGHT);
           if (sheetOpen) _animatedContainerHeight.setValue(SCREEN_HEIGHT);
@@ -352,6 +370,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       sheetOpen,
       containerHeight,
       modal,
+      _animatedContainerHeight,
     ]);
 
     /**
@@ -361,7 +380,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     // Children
     const ChildNodes =
-      typeof Children == 'function' ? (
+      typeof Children === 'function' ? (
         <Children _animatedHeight={_animatedHeight} />
       ) : (
         Children
@@ -369,7 +388,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     return (
       <>
-        {typeof passedContainerHeight == 'string' ? (
+        {typeof passedContainerHeight === 'string' ? (
           /**
            * Below View handles converting `passedContainerHeight` from string to a number (to be animatable).
            * It does this by taking the string height passed via `containerHeight` prop,
