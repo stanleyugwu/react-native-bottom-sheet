@@ -1,19 +1,18 @@
 # React Native Bottom Sheet 💖
-![GitHub](https://img.shields.io/github/license/stanleyugwu/react-native-bottom-sheet?style=plastic&color=%23ffaff2)
-![npm bundle size (scoped)](https://img.shields.io/bundlephobia/minzip/devvie/bottom-sheet?style=plastic&logo=npm&label=bundle%20size&color=%23ffabf7)
+![GitHub](https://img.shields.io/github/license/stanleyugwu/react-native-bottom-sheet?style=plastic&color=%23fea9f8)
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/stanleyugwu/react-native-bottom-sheet/ci.yml?color=%23fea9f8)
+![Static Badge](https://img.shields.io/badge/Expo-Support-23fea9f8?style=plastic&logo=expo&color=%23fea9f8)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/stanleyugwu/react-native-bottom-sheet?color=%23fea9f8)
-![Static Badge](https://img.shields.io/badge/Expo_Support-ffabf7?style=plastic&logo=expo)
-
-
+![npm bundle size (scoped)](https://img.shields.io/bundlephobia/minzip/devvie/bottom-sheet?style=plastic&logo=npm&label=bundle%20size&color=%23fea9f8)
+![npm downloads](https://img.shields.io/npm/dy/devvie/bottom-sheet?style=plastic&logo=npm&color=%23fea9f8)
 
 
 The smart 😎, tiny 📦, and flexible 🎗 bottom sheet your app craves 🚀
 
-![Preview for Android & iOS](./previews/Combined.gif)
+![Preview for Android & iOS](https://i.ibb.co/Y38XsMr/Combined.gif)
 #### Web Preview
 <p float="left">
-  <img src="./previews/Web.png" width="400" />
+  <img src="https://i.ibb.co/sJpsFKD/Web.png" width="400" />
 </p>
 
 ## ✨Features
@@ -151,36 +150,36 @@ Flexibility is a focus for this bottom sheet, these few examples shows certain b
 ### 1️⃣ Smart response to keyboard pop ups and orientation changes (_automatic behavior_)
 Android            |  iOS
 :-------------------------:|:-------------------------:
- ![Preview for keyboard handling (Android)](./previews/Android/Keyboard%20Response.gif) |  ![Preview for keyboard handling (iOS)](./previews/iOS/Keyboard%20Response.gif)
+ ![Preview for keyboard handling (Android)](https://i.ibb.co/0BfLWYK/Keyboard-Response.gif) |  ![Preview for keyboard handling (iOS)](https://i.ibb.co/302ZYBL/Keyboard-Response.gif)
 
 ### 2️⃣ Handles deeply nested list and scroll views interactions (_automatic beavior_)
 Android            |  iOS
 :-------------------------:|:-------------------------:
- ![Preview for scroll handling (Android)](./previews/Android/Nested%20Scroll.gif) |  ![Preview for scroll handling (iOS)](./previews/iOS/Nested%20List.gif)
+ ![Preview for scroll handling (Android)](https://i.ibb.co/kgfPM3w/Nested-Scroll.gif) |  ![Preview for scroll handling (iOS)](https://i.ibb.co/rcrJVLc/Nested-List.gif)
 
 ### 3️⃣ Auto adjusts layout when `height` and `containerHeight` props change (_automatic behavior_)
 <p float="left">
-  <img src="./previews/iOS/Detect%20Height.gif" width="400" />
+  <img src="https://i.ibb.co/3YGXHht/Detect-Height.gif" width="300" />
 </p>
 
 ### 4️⃣ Extend sheet height when its content is scrolled
 <p float="left">
-  <img src="./previews/iOS/Extend%20on%20scroll.gif" width="400" />
+  <img src="https://i.ibb.co/9W5J2t5/Extend-on-scroll.gif" width="300" />
 </p>
 
 ### 5️⃣ Use as `SnackBar`
 <p float="left">
-  <img src="./previews/Android/Snack%20Bar.gif" width="400" />
+  <img src="https://i.ibb.co/LkMJ255/Snack-Bar.gif" width="300" />
 </p>
 
 ### 6️⃣ Custom Drag Handle Animation Interpolation
 <p float="left">
-  <img src="./previews/Android/Drag%20Handle%20Animation.gif" width="400" />
+  <img src="https://i.ibb.co/0yDPQ0W/Drag-Handle-Animation.gif" width="300" />
 </p>
 
 ### 7️⃣ Custom Scrim/Backdrop Mask
 <p float="left">
-  <img src="./previews/Android/Custom%20Scrim.gif" width="400" />
+  <img src="https://i.ibb.co/h9XqBJC/Custom-Scrim.gif" width="300" />
 </p>
 
 #### _More Examples and code samples comign soon..._
