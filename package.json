@@ -1,9 +1,10 @@
 {
   "name": "@devvie/bottom-sheet",
-  "version": "The 😎smart , 📦tiny , and 🎗flexible bottom sheet your app craves 🚀",
+  "version": "0.1.0",
+  "description": "The 😎smart , 📦tiny , and 🎗flexible bottom sheet your app craves 🚀",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/src/index.d.ts",
+  "types": "lib/typescript/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
   "files": [
