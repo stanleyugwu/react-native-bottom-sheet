@@ -20,7 +20,7 @@
     "build-dts": "tsc --project tsconfig.build.json",
     "copy-dts": "xcopy /S /Y \"src\\*.d.ts\" \"lib\\typescript\"",
     "prepack": "yarn del-build-dir && yarn build-dts && yarn copy-dts && bob build",
-    "release": "yarn prepack && release-it",
+    "release": "yarn prepack && dotenv release-it --",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install"
   },
@@ -59,6 +59,7 @@
     "@types/react-native": "0.70.0",
     "commitlint": "^17.0.2",
     "del-cli": "^5.0.0",
+    "dotenv-cli": "^7.3.0",
     "eslint": "^8.4.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
@@ -103,7 +104,8 @@
       "publish": true
     },
     "github": {
-      "release": true
+      "release": true,
+      "releaseNotes": "git log --no-merges --pretty=format:\"* %s %h\" ${latestTag}...main"
     },
     "plugins": {
       "@release-it/conventional-changelog": {
