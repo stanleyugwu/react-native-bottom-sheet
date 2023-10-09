@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "@devvie/bottom-sheet": ["./src/index"]
+      "@devvie/bottom-sheet": ["./lib/typescript"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

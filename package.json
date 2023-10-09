@@ -30,8 +30,11 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "prepack": "bob build",
-    "release": "release-it",
+    "del-build-dir": "node scripts/delete-lib-dir.js",
+    "build-dts": "tsc --project tsconfig.build.json",
+    "copy-dts": "xcopy /S /Y \"src\\*.d.ts\" \"lib\\typescript\"",
+    "prepack": "yarn del-build-dir && yarn build-dts && yarn copy-dts && bob build",
+    "release": "yarn prepack && release-it",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install"
   },
@@ -156,13 +159,7 @@
     "output": "lib",
     "targets": [
       "commonjs",
-      "module",
-      [
-        "typescript",
-        {
-          "project": "tsconfig.build.json"
-        }
-      ]
+      "module"
     ]
   }
 }
