@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import AnimatedTouchableBackdropMask from '../animatedTouchableBackdropMask';
 import { CUSTOM_BACKDROP_POSITIONS } from '../../types.d';
-import type { BackdropProps } from './index.d';
+import type { BackdropProps } from './types.d';
 
 /**
  * Abstracted, polymorphic backdrop that handles custom and default backdrop

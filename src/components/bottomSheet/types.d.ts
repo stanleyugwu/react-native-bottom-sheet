@@ -3,7 +3,7 @@ import {
   ANIMATIONS,
   CUSTOM_BACKDROP_POSITIONS,
   type BottomSheetMethods,
-} from '../../types.d';
+} from '../../types';
 import React from 'react';
 
 // short hand for toValue key of Animator methods

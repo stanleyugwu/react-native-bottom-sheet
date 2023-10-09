@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { BackHandler, type NativeEventSubscription } from 'react-native';
-import type { UseHandleAndroidBackButtonClose } from './index.d';
+import type { UseHandleAndroidBackButtonClose } from './types';
 
 /**
  * Handles closing sheet for android hardware back button press event

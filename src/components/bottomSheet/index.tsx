@@ -38,7 +38,7 @@ import {
   type BottomSheetMethods,
   CUSTOM_BACKDROP_POSITIONS,
   type BOTTOMSHEET,
-} from './index.d';
+} from './types';
 import useHandleAndroidBackButtonClose from '../../hooks/useHandleAndroidBackButtonClose';
 
 /**
