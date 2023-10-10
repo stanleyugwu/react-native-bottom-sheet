@@ -97,15 +97,21 @@
   },
   "release-it": {
     "git": {
-      "commitMessage": "🧹 chore: release ${version}",
-      "tagName": "v${version}"
+      "commitMessage": "🧹✨ chore: release ${version}",
+      "tagName": "v${version}",
+      "requireBranch": "main"
     },
     "npm": {
       "publish": true
     },
     "github": {
       "release": true,
-      "releaseNotes": "git log --no-merges --pretty=format:\"* %s %h\" ${latestTag}...main"
+      "releaseNotes": "git log --no-merges --pretty=format:\"* %s %h\" ${latestTag}...main",
+      "comments": {
+        "submit": true,
+        "issue": ":rocket: _This issue has been resolved in v${version}. See [${releaseName}](${releaseUrl}) for release notes._",
+        "pr": ":rocket: _This pull request is included in v${version}. See [${releaseName}](${releaseUrl}) for release notes._"
+      }
     },
     "plugins": {
       "@release-it/conventional-changelog": {
