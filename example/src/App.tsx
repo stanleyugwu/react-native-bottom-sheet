@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { StyleSheet, View, Text, Button } from 'react-native';
+// @ts-ignore ts can't find module '@devvie/bottom-sheet' on github runner because it's aliased
 import BottomSheet, { type BottomSheetMethods } from '@devvie/bottom-sheet';
 
 export default function App() {
