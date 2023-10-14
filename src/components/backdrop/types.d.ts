@@ -4,7 +4,7 @@ import {
   GestureResponderEvent,
   OpaqueColorValue,
 } from 'react-native';
-import { CUSTOM_BACKDROP_POSITIONS } from '../bottomSheet';
+import { CUSTOM_BACKDROP_POSITIONS } from '../bottomSheet/types.d';
 
 export type Color =
   | string
@@ -17,7 +17,9 @@ export type BackdropProps = {
   BackdropComponent?: React.FunctionComponent<{
     _animatedHeight: Animated.Value;
   }>;
-  backdropPosition?: CUSTOM_BACKDROP_POSITIONS;
+  backdropPosition?:
+    | CUSTOM_BACKDROP_POSITIONS
+    | Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
   sheetOpen: boolean;
   containerHeight: number;
   contentContainerHeight: number;

@@ -5,7 +5,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import type { HeightAnimationDriver, UseHandleKeyboardEvents } from './types';
+import type { HeightAnimationDriver, UseHandleKeyboardEvents } from './types.d';
 
 /**
  * Handles keyboard pop up adjusts sheet's layout when TextInput within
