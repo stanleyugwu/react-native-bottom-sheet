@@ -3,7 +3,7 @@ import {
   ANIMATIONS,
   CUSTOM_BACKDROP_POSITIONS,
   type BottomSheetMethods,
-} from '../../types';
+} from '../../types.d';
 import React from 'react';
 
 // short hand for toValue key of Animator methods
@@ -209,19 +209,21 @@ interface BottomSheetProps {
   }>;
 
   /**
-   * When `customBackdropComponent` is provided, determines its position within the sheet.\
+   * When `customBackdropComponent` is provided, determines its position within the sheet.
    *
    * **'top'** - positions the custom backdrop component directly above the sheet\
    * **'behind'** - positions the custom backdrop component behind the sheet.
-   * This is the default behaviour\
+   * This is the default behaviour
    *
    * `Note:` This prop only applies to custom backdrop component
    *
-   * `Default: 'top'`
-   * @type {"top" | "behind"}
-   * @default "behind"
+   * `Default: 'behind'`
+   * @type {"top" | "behind" | CUSTOM_BACKDROP_POSITIONS}
+   * @default "behind" / CUSTOM_BACKDROP_POSITIONS.BEHIND
    */
-  customBackdropPosition?: Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
+  customBackdropPosition?:
+    | CUSTOM_BACKDROP_POSITIONS
+    | Lowercase<keyof typeof CUSTOM_BACKDROP_POSITIONS>;
 
   /**
    * Determines whether sheet is a modal.
