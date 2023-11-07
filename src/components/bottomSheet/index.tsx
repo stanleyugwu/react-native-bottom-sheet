@@ -68,6 +68,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       closeDuration = DEFAULT_CLOSE_ANIMATION_DURATION,
       customEasingFunction,
       android_closeOnBackPress = true,
+      onClose,
+      onOpen,
     },
     ref
   ) => {
@@ -314,6 +316,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         Animators.animateHeight(convertedHeight, openDuration).start();
       }
       setSheetOpen(true);
+
+      if (onOpen) {
+        onOpen();
+      }
     };
 
     const closeBottomSheet = () => {
@@ -334,6 +340,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       setSheetOpen(false);
       removeKeyboardListeners();
       Keyboard.dismiss();
+
+      if (onClose) {
+        onClose();
+      }
     };
 
     const containerViewLayoutHandler = (event: LayoutChangeEvent) => {
