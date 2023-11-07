@@ -292,6 +292,36 @@ interface BottomSheetProps {
    * @default {true}
    */
   android_closeOnBackPress?: boolean;
+
+  /**
+   * Сallback function that is called when the bottom sheet starts to close
+   *
+   * @example
+   * <BottomSheet
+   *   onClose={() => {
+   *     console.log('Bottom Sheet closing.');
+   *   }}
+   * />
+   *
+   * @type {Function}
+   * @default undefined
+   */
+  onClose?: Function;
+
+  /**
+   * Сallback function that is called when the bottom sheet starts to open
+   *
+   * @example
+   * <BottomSheet
+   *   onOpen={() => {
+   *     console.log('Bottom Sheet opening.');
+   *   }}
+   * />
+   *
+   * @type {Function}
+   * @default undefined
+   */
+  onOpen?: Function;
 }
 
 export {
