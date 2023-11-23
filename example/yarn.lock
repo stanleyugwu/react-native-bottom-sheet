@@ -1163,6 +1163,11 @@
     "@babel/helper-validator-identifier" "^7.22.20"
     to-fast-properties "^2.0.0"
 
+"@devvie/bottom-sheet@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@devvie/bottom-sheet/-/bottom-sheet-0.1.2.tgz#45ccacc5b4e34396b5404a99883dc84d38b952b5"
+  integrity sha512-44SUvGwetz2q42sfxeQJf1wlk1xhDnBG8ju8jF7e7zLpv59Y0M7TSOw4RdX+LWepqie6ST7yeBCOwq9bLCFA2A==
+
 "@expo/bunyan@4.0.0", "@expo/bunyan@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@expo/bunyan/-/bunyan-4.0.0.tgz#be0c1de943c7987a9fbd309ea0b1acd605890c7b"
