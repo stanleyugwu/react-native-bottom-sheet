@@ -42,7 +42,8 @@ interface BottomSheetProps {
   /**
    * Extra styles to apply to bottom sheet (the `View` that wraps its children).
    *
-   * `Note:` style properties `height`, `maxHeight`, `minHeight` and translation along y-axis i.e `transform:[{translateY:...}]` will be ignored.
+   * `Note:` style properties `height`, `maxHeight`, `minHeight` will be ignored.
+   * If you want to set sheet's height, pass the `height` prop instead.
    * @type {Omit<ViewStyle, 'height' | 'minHeight' | 'maxHeight' | 'transform:[{translateY}]'>}
    */
   style?: Omit<ViewStyle, 'height' | 'minHeight' | 'maxHeight'>;
