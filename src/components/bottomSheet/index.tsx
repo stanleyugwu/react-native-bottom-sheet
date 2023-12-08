@@ -436,12 +436,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             ref={contentWrapperRef}
             key={'BottomSheetContentContainer'}
             onLayout={extractNativeTag}
-            /**
-             * Merge external style and transform property carefully and orderly with
-             * internal styles and animated transform properties
-             * to apply external styles and transform properties and avoid
-             * internal styles and transform properties override
-             */
+            /* Merge external and internal styles carefully and orderly */
             style={[
               !modal ? materialStyles.contentContainerShadow : false,
               materialStyles.contentContainer,
