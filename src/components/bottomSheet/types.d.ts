@@ -1,4 +1,10 @@
-import { Animated, OpaqueColorValue, ViewProps, ViewStyle } from 'react-native';
+import {
+  Animated,
+  OpaqueColorValue,
+  ViewProps,
+  ViewStyle,
+  type StyleProp,
+} from 'react-native';
 import {
   ANIMATIONS,
   CUSTOM_BACKDROP_POSITIONS,
@@ -46,7 +52,7 @@ interface BottomSheetProps {
    * If you want to set sheet's height, pass the `height` prop instead.
    * @type {Omit<ViewStyle, 'height' | 'minHeight' | 'maxHeight' | 'transform:[{translateY}]'>}
    */
-  style?: Omit<ViewStyle, 'height' | 'minHeight' | 'maxHeight'>;
+  style?: StyleProp<Omit<ViewStyle, 'height' | 'minHeight' | 'maxHeight'>>;
 
   /**
    * Height of the bottom sheet's overall container, this will be the height of
