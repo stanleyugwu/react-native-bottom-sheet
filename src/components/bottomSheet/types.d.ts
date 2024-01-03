@@ -289,7 +289,13 @@ interface BottomSheetProps {
   customEasingFunction?: AnimationEasingFunction;
 
   /**
-   * Determines whether sheet will close when device back button is pressed.
+   * Determines whether sheet will close or not when device back button is pressed, on Android.
+   *
+   * __In a typical app screen (where back button takes user to the previous screen):__ \
+   * _If `true` and sheet is open, the user has to press the back button twice to exit the screen.
+   * The first press closes the sheet and the second exits the screen.\
+   * If `false` and sheet is open, the user has to close the sheet through another means like backdrop press
+   * and then press the back button after that to exit the screen_
    *
    * `Note:` Only applies for Android
    *
