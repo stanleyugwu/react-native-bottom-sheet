@@ -386,7 +386,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     /**
      * Handles hardware back button press for android
      */
-    useHandleAndroidBackButtonClose(android_closeOnBackPress, closeBottomSheet);
+    useHandleAndroidBackButtonClose(
+      android_closeOnBackPress,
+      closeBottomSheet,
+      sheetOpen
+    );
 
     // Children
     const ChildNodes =
