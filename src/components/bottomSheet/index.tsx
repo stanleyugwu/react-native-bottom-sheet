@@ -40,6 +40,7 @@ import {
   type BOTTOMSHEET,
 } from './types.d';
 import useHandleAndroidBackButtonClose from '../../hooks/useHandleAndroidBackButtonClose';
+import separatePaddingStyles from '../../utils/separatePaddingStyles';
 
 /**
  * Main bottom sheet component
@@ -103,6 +104,16 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     /** cached _nativeTag property of content container */
     const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
+
+    // here we separate all padding that may be applied via contentContainerStyle prop,
+    // these paddings will be applied to the `View` diretly wrapping `ChildNodes` in content container.
+    // All these is so that paddings applied to sheet doesn't affect the drag handle
+    // TODO: find better way to memoize `separatePaddingStyles` function return value to avoid
+    // redundant re-runs
+    const sepStyles = useMemo(
+      () => separatePaddingStyles(contentContainerStyle),
+      [contentContainerStyle]
+    );
 
     // Animation utility
     const Animators = useMemo(
@@ -444,7 +455,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             style={[
               !modal ? materialStyles.contentContainerShadow : false,
               materialStyles.contentContainer,
-              contentContainerStyle,
+              // we apply styles other than padding here
+              sepStyles?.otherStyles,
               {
                 height: _animatedHeight,
                 minHeight: _animatedHeight,
@@ -454,7 +466,13 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             {...panHandlersFor('contentwrapper')}
           >
             <PolymorphicHandleBar />
-            {ChildNodes}
+
+            <View
+              // we apply padding styles here to not affect drag handle above
+              style={sepStyles?.paddingStyles}
+            >
+              {ChildNodes}
+            </View>
           </Animated.View>
         </Container>
       </>

@@ -1,16 +1,15 @@
-import {
-  Animated,
-  OpaqueColorValue,
-  ViewProps,
-  ViewStyle,
-  type StyleProp,
-} from 'react-native';
+import { Animated, OpaqueColorValue, ViewProps, ViewStyle } from 'react-native';
 import {
   ANIMATIONS,
   CUSTOM_BACKDROP_POSITIONS,
   type BottomSheetMethods,
 } from '../../types.d';
 import React from 'react';
+
+export type SheetStyleProp = Omit<
+  ViewStyle,
+  'height' | 'minHeight' | 'maxHeight'
+>;
 
 // short hand for toValue key of Animator methods
 type ToValue = Animated.TimingAnimationConfig['toValue'];
@@ -50,9 +49,9 @@ interface BottomSheetProps {
    *
    * `Note:` style properties `height`, `maxHeight`, `minHeight` will be ignored.
    * If you want to set sheet's height, pass the `height` prop instead.
-   * @type {Omit<ViewStyle, 'height' | 'minHeight' | 'maxHeight' | 'transform:[{translateY}]'>}
+   * @type {SheetStyleProp}
    */
-  style?: StyleProp<Omit<ViewStyle, 'height' | 'minHeight' | 'maxHeight'>>;
+  style?: SheetStyleProp;
 
   /**
    * Height of the bottom sheet's overall container, this will be the height of
