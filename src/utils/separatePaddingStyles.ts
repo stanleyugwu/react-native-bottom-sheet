@@ -11,7 +11,6 @@ type PadProps =
   | 'paddingStart'
   | 'paddingTop'
   | 'paddingVertical';
-
 type Styles = {
   paddingStyles: Pick<ViewStyle, PadProps>;
   otherStyles: Omit<ViewStyle, PadProps>;
@@ -34,9 +33,9 @@ const separatePaddingStyles = (
   };
 
   for (const key of styleKeys) {
-    // @ts-expect-error
+    // @ts-ignore
     styles[key.startsWith('padding') ? 'paddingStyles' : 'otherStyles'][key] =
-      // @ts-expect-error
+      // @ts-ignore
       style[key];
   }
 
