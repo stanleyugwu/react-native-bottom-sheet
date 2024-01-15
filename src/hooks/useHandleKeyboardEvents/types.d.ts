@@ -6,13 +6,17 @@ export type HookReturn = {
    * Removes all keyboard listeners, typically when sheet is closed
    */
   removeKeyboardListeners: () => void;
-};
+} | null;
 
 /**
- * Function type
+ * Handles keyboard pop out
  */
 export type UseHandleKeyboardEvents = (
-  /** initial height of the sheet */
+  /** Determines whether this hook will go on to handle keyboard */
+  keyboardHandlingEnabled: boolean,
+  /**
+   * initial height of the sheet
+   */
   sheetHeight: number,
   /** determines whether sheet is expanded */
   sheetOpen: boolean,

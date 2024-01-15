@@ -71,6 +71,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       android_closeOnBackPress = true,
       onClose,
       onOpen,
+      disableKeyboardHandling = false,
     },
     ref
   ) => {
@@ -218,10 +219,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     ]);
 
     /**
-     * Handles keyboard pop up for both platforms and auto adjust sheet layout
-     * accordingly
+     * If `disableKeyboardHandling` is false, handles keyboard pop up for both platforms,
+     * by auto adjusting sheet layout accordingly
      */
-    const { removeKeyboardListeners } = useHandleKeyboardEvents(
+    const keyboardHandler = useHandleKeyboardEvents(
+      !disableKeyboardHandling,
       convertedHeight,
       sheetOpen,
       Animators.animateHeight,
@@ -349,7 +351,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         }
       });
       setSheetOpen(false);
-      removeKeyboardListeners();
+      keyboardHandler?.removeKeyboardListeners();
       Keyboard.dismiss();
 
       if (onClose) {
