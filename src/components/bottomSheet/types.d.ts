@@ -334,6 +334,17 @@ interface BottomSheetProps {
    * @default undefined
    */
   onOpen?: Function;
+
+  /**
+   * By default, the sheet handles keyboard pop-out automatically and smartly,
+   * setting this to `true` disables that behavior, essentially leaving
+   * the system to handle the keyboard the native way.
+   *
+   * `Default: false`
+   * @type {boolean}
+   * @default {false}
+   */
+  disableKeyboardHandling?: boolean;
 }
 
 export {
