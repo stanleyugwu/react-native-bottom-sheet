@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
   useLayoutEffect,
+  useEffect,
 } from 'react';
 import {
   Animated,
@@ -71,6 +72,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       android_closeOnBackPress = true,
       onClose,
       onOpen,
+      onAnimate,
       disableKeyboardHandling = false,
     },
     ref
@@ -366,6 +368,34 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       // we need to manually update the container height
       if (sheetOpen) _animatedContainerHeight.setValue(newHeight);
     };
+
+    /**
+     * Implementation logic for `onAnimate` prop
+     */
+    useEffect(() => {
+      if (onAnimate && typeof onAnimate === 'function') {
+        const animate = (
+          state: Parameters<Animated.ValueListenerCallback>['0']
+        ) => onAnimate(state.value);
+        let listenerId: string;
+        if (animationType === 'fade')
+          listenerId = _animatedBackdropMaskOpacity.addListener(animate);
+        else listenerId = _animatedHeight.addListener(animate);
+
+        return () => {
+          if (animationType === 'fade')
+            _animatedBackdropMaskOpacity.removeListener(listenerId);
+          else _animatedHeight.removeListener(listenerId);
+        };
+      }
+
+      return;
+    }, [
+      onAnimate,
+      animationType,
+      _animatedBackdropMaskOpacity,
+      _animatedHeight,
+    ]);
 
     /**
      * Handles auto adjusting container view height and clamping

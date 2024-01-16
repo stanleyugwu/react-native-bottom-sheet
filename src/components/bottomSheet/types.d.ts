@@ -74,11 +74,13 @@ interface BottomSheetProps {
    * @type {AnimationType | ANIMATIONS}
    * @default "slide" | ANIMATIONS.SLIDE
    * @example
+   * ```tsx
    * import BottomSheet, {ANIMATIONS} from '@devvie/bottom-sheet';
    * ...
    * <BottomSheet animationType={ANIMATIONS.SLIDE}>
    * ...
    * </BottomSheet>
+   * ```
    */
   animationType?: AnimationType;
 
@@ -130,6 +132,7 @@ interface BottomSheetProps {
        *
        * `Note:` Styles passed through `dragHandleStyle` prop won't be applied to it.
        *
+       * @type {React.FC<{animatedHeight: Animated.Value, animatedYTranslation:Animated.Value}>}
        * @example
        * ```tsx
        * // Below example will animate the custom drag handle's width as the 
@@ -150,8 +153,6 @@ interface BottomSheetProps {
             ...
           </BottomSheet>
        * ```
-       * @type {React.FC<{animatedHeight: Animated.Value, animatedYTranslation:Animated.Value}>}
-       * 
        */
   customDragHandleComponent?: React.FC<{
     /**
@@ -308,32 +309,80 @@ interface BottomSheetProps {
   /**
    * Сallback function that is called when the bottom sheet starts to close
    *
+   * @type {Function}
+   * @default undefined
    * @example
+   * ```tsx
    * <BottomSheet
    *   onClose={() => {
    *     console.log('Bottom Sheet closing.');
    *   }}
    * />
-   *
-   * @type {Function}
-   * @default undefined
+   * ```
    */
   onClose?: Function;
 
   /**
    * Сallback function that is called when the bottom sheet starts to open
    *
+   * @type {Function}
+   * @default undefined
    * @example
+   * ```tsx
    * <BottomSheet
    *   onOpen={() => {
    *     console.log('Bottom Sheet opening.');
    *   }}
    * />
-   *
-   * @type {Function}
-   * @default undefined
+   * ```
    */
   onOpen?: Function;
+
+  /**
+   * Function called with an animated number indicating the
+   * progress of the opening/closing animation when sheet is being opened or closed.
+   *
+   * When `animationType` prop is __not__ set to `ANIMATION.FADE` or `'fade'`,
+   * the number passed to this function will go from _`0`_ to _`sheet's height`_ (when sheet's opening)
+   * or _`sheet's height`_ to  _`0`_ (when sheet's closing).
+   *
+   * When `animationType` prop is set to `ANIMATION.FADE` or `'fade'`,
+   * the number will go from `0.0` to `1.0` (when sheet's opening)
+   * or _`1.0`_ to  _`0.0`_ (when sheet's closing).
+   *
+   * `Default: undefined`
+   * @default {undefined}
+   * @type {(animatedHeightOrOpacity: number) => void}
+   * ### Example with 'slide' or 'spring' animation
+   * @example
+   * ```tsx
+   * <BottomSheet
+       ref={sheetRef}
+       height={300}
+       animationType="slide"
+       onAnimate={(animatedValue) => {
+         console.log(animatedValue); // (0)...(150)...(300)
+       }}
+    >
+       ...
+    </BottomSheet>
+   * ```
+   * ### Example with 'fade' animation
+   * @example 
+   * ```tsx
+   * <BottomSheet
+       ref={sheetRef}
+       height={300}
+       animationType="fade"
+       onAnimate={(animatedValue) => {
+         console.log(animatedValue); // (0.0)...(0.5)...(1.0)
+       }}
+    >
+       ...
+    </BottomSheet>
+     ```
+   */
+  onAnimate?: (animatedHeightOrOpacity: number) => void;
 
   /**
    * By default, the sheet handles keyboard pop-out automatically and smartly,
