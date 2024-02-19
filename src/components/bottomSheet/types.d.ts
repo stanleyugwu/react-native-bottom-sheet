@@ -28,6 +28,30 @@ type AnimationEasingFunction = (x: number) => number;
  */
 interface BottomSheetProps {
   /**
+   * set this to true when you have a scrollable e.g `<ScrollView/>` or `<FlatList/>`
+   * as a child of the bottom sheet. This will enable the scrollable to be scrolled.
+   * 
+   * `Note:` on Android, the nested scrollviews will be scrollable by default whether you pass
+   * this prop or not, but for iOS you need to pass this prop to enable it.
+   *
+   *  * `Default: false`
+   *
+   * @type {boolean}
+   * @default false
+   * @example
+  * ```tsx
+  * // Below example will enable the `FlatList` items to be scrollable within the bottomsheet
+  * <BottomSheet ref={sheetRef} supportsNestedScroll={true}>
+      <FlatList data={...} />
+      <View>
+        <Text>Other Views </Text>
+      </View>
+    </BottomSheet>
+   * ```
+   */
+  ios_supportsNestedScroll?: boolean;
+
+  /**
    * Height of the bottom sheet when expanded. This value will be relative to `containerHeight`
    * if it's supplied, or the screen's height otherwise.
    * Value can be in pixel units (number) or percentage (string).

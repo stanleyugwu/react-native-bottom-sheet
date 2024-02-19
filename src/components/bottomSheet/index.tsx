@@ -74,6 +74,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       onOpen,
       onAnimate,
       disableKeyboardHandling = false,
+      ios_supportsNestedScroll = false,
     },
     ref
   ) => {
@@ -239,21 +240,17 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       if (view === 'handlebar' && disableDragHandlePanning) return null;
       if (view === 'contentwrapper' && disableBodyPanning) return null;
       return PanResponder.create({
-        onMoveShouldSetPanResponder: (evt) => {
-          /**
-           * `FiberNode._nativeTag` is stable across renders so we use it to determine
-           * whether content container or it's child should respond to touch move gesture.
-           *
-           * The logic is, when content container is laid out, we extract it's _nativeTag property and cache it
-           * So later when a move gesture event occurs within it, we compare the cached _nativeTag with the _nativeTag of
-           * the event target's _nativeTag, if they match, then content container should respond, else its children should.
-           * Also, when the target is the handle bar, we le it handle geture unless panning is disabled through props
-           */
-          return view === 'handlebar'
+        onMoveShouldSetPanResponderCapture: () => {
+          return false;
+        },
+        onMoveShouldSetPanResponder: (_) => {
+          if (view === 'handlebar') return true;
+
+          return Platform.OS === 'android'
             ? true
-            : cachedContentWrapperNativeTag.current ===
-                // @ts-expect-error
-                evt?.target?._nativeTag;
+            : ios_supportsNestedScroll
+            ? false
+            : true;
         },
         onPanResponderMove: (_, gestureState) => {
           if (gestureState.dy > 0) {
