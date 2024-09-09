@@ -304,14 +304,15 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     /**
      * Extracts and caches the _nativeTag property of ContentWrapper
      */
-    let extractNativeTag = useCallback(
-      // @ts-expect-error
-      ({ target: { _nativeTag: tag = undefined } }: LayoutChangeEvent) => {
-        if (!cachedContentWrapperNativeTag.current)
-          cachedContentWrapperNativeTag.current = tag;
-      },
-      []
-    );
+    let extractNativeTag = useCallback(({ target }: LayoutChangeEvent) => {
+      const tag =
+        Platform.OS === 'web'
+          ? undefined
+          : // @ts-expect-error
+            target?._nativeTag;
+      if (!cachedContentWrapperNativeTag.current)
+        cachedContentWrapperNativeTag.current = tag;
+    }, []);
 
     /**
      * Expands the bottom sheet.
