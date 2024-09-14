@@ -1,6 +1,6 @@
 {
   "name": "@devvie/bottom-sheet",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "The 😎smart , 📦tiny , and 🎗flexible bottom sheet your app craves 🚀",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -18,7 +18,9 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "del-build-dir": "node scripts/delete-lib-dir.js",
     "build-dts": "tsc --project tsconfig.build.json",
-    "copy-dts": "xcopy /S /Y \"src\\*.d.ts\" \"lib\\typescript\"",
+    "copy-dts:unix": "mkdir -p lib/typescript && rsync --prune-empty-dirs -av --include '*/' --include '*.d.ts' --exclude '*' src/ lib/typescript/",
+    "copy-dts:windows": "xcopy /S /Y \"src\\*.d.ts\" \"lib\\typescript\"",
+    "copy-dts": "if [ \"$OS\" = \"Windows_NT\" ]; then yarn copy-dts:windows; else yarn copy-dts:unix; fi",
     "prepack": "yarn del-build-dir && yarn build-dts && yarn copy-dts && bob build",
     "release": "yarn prepack && dotenv release-it --",
     "example": "yarn --cwd example",
@@ -87,14 +89,9 @@
       "<rootDir>/lib/"
     ]
   },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
   "release-it": {
     "git": {
-      "commitMessage": "🧹✨ chore: release ${version}",
+      "commitMessage": "🛠️🚀 build: release ${version}",
       "tagName": "v${version}",
       "requireBranch": "main"
     },
