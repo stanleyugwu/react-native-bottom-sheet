@@ -4,7 +4,7 @@
   "description": "The 😎smart , 📦tiny , and 🎗flexible bottom sheet your app craves 🚀",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/index.d.ts",
+  "types": "lib/typescript/src/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
   "files": [
