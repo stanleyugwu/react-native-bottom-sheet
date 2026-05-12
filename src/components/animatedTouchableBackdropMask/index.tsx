@@ -1,4 +1,3 @@
-import React from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 import { type AnimatedTouchableBackdropMaskProps } from './types.d';
 
@@ -31,7 +30,6 @@ const AnimatedTouchableBackdropMask = ({
       {...otherProps}
     />
   ) : (
-    // @ts-expect-error
     <Animated.View
       style={[style, styles.sharedBackdropStyle]}
       {...otherProps}

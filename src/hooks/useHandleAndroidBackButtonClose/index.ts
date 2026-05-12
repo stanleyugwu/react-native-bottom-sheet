@@ -15,7 +15,7 @@ const useHandleAndroidBackButtonClose: UseHandleAndroidBackButtonClose = (
   closeSheet,
   sheetOpen = false
 ) => {
-  const handler = useRef<NativeEventSubscription>();
+  const handler = useRef<NativeEventSubscription | null>(null);
   useEffect(() => {
     handler.current = BackHandler.addEventListener('hardwareBackPress', () => {
       if (sheetOpen) {

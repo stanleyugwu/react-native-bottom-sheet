@@ -7,6 +7,7 @@ import React, {
   useState,
   useLayoutEffect,
   useEffect,
+  type ComponentRef,
 } from 'react';
 import {
   Animated,
@@ -103,7 +104,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const _animatedBackdropMaskOpacity = useAnimatedValue(0);
     const _animatedHeight = useAnimatedValue(0);
 
-    const contentWrapperRef = useRef<View>(null);
+    const contentWrapperRef = useRef<ComponentRef<typeof Animated.View>>(null);
 
     /** cached _nativeTag property of content container */
     const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
@@ -129,8 +130,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           return value === 0
             ? 0
             : value === 1
-            ? 1
-            : Math.pow(2, -9 * value) * Math.sin((value * 4.5 - 0.75) * c4) + 1;
+              ? 1
+              : Math.pow(2, -9 * value) * Math.sin((value * 4.5 - 0.75) * c4) +
+                1;
         },
         animateContainerHeight(toValue: ToValue, duration: number = 0) {
           return Animated.timing(_animatedContainerHeight, {
@@ -160,8 +162,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               customEasingFunction && typeof customEasingFunction === 'function'
                 ? customEasingFunction
                 : animationType === ANIMATIONS.SLIDE
-                ? this._slideEasingFn
-                : this._springEasingFn,
+                  ? this._slideEasingFn
+                  : this._springEasingFn,
           });
         },
       }),
@@ -375,9 +377,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      */
     useEffect(() => {
       if (onAnimate && typeof onAnimate === 'function') {
-        const animate = (
-          state: Parameters<Animated.ValueListenerCallback>['0']
-        ) => onAnimate(state.value);
+        const animate = (state: { value: number }) => onAnimate(state.value);
         let listenerId: string;
         if (animationType === 'fade')
           listenerId = _animatedBackdropMaskOpacity.addListener(animate);
@@ -404,7 +404,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * Also auto adjusts when orientation changes
      */
     useLayoutEffect(() => {
-      if (!modal) return; // no auto layout adjustment when backdrop is hidden
+      if (!modal)
+        return; // no auto layout adjustment when backdrop is hidden
       else {
         if (typeof passedContainerHeight === 'number') {
           setContainerHeight(normalizeHeight(passedContainerHeight));

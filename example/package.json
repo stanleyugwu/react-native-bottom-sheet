@@ -1,27 +1,26 @@
 {
-  "name": "example",
+  "name": "@devvie/bottom-sheet-example",
   "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:web": "expo export --platform web"
   },
   "dependencies": {
-    "@devvie/bottom-sheet": "^0.1.2",
-    "expo": "~49.0.11",
-    "expo-status-bar": "~1.6.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-native": "0.72.4",
-    "react-native-web": "~0.19.6"
+    "@expo/metro-runtime": "~55.0.11",
+    "expo": "~55.0.23",
+    "expo-status-bar": "~55.0.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-web": "~0.21.0"
   },
+  "private": true,
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@expo/webpack-config": "^18.0.1",
-    "babel-loader": "^8.1.0",
-    "babel-plugin-module-resolver": "^5.0.0"
-  },
-  "private": true
+    "react-native-builder-bob": "^0.41.0",
+    "react-native-monorepo-config": "^0.3.3"
+  }
 }
