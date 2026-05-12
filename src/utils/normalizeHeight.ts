@@ -12,8 +12,8 @@ const normalizeHeight = (height?: number | string): number => {
       height < 0
         ? 0
         : height > DEVICE_SCREEN_HEIGHT
-        ? DEVICE_SCREEN_HEIGHT
-        : height;
+          ? DEVICE_SCREEN_HEIGHT
+          : height;
   return clampedHeight;
 };
 
