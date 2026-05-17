@@ -1,23 +1,23 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  useLayoutEffect,
-  useEffect,
   type ComponentRef,
 } from 'react';
 import {
   Animated,
-  View,
-  PanResponder,
-  StyleSheet,
-  type LayoutChangeEvent,
-  useWindowDimensions,
   Keyboard,
+  PanResponder,
   Platform,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type LayoutChangeEvent,
 } from 'react-native';
 import {
   DEFAULT_ANIMATION,
@@ -26,23 +26,23 @@ import {
   DEFAULT_HEIGHT,
   DEFAULT_OPEN_ANIMATION_DURATION,
 } from '../../constant';
-import DefaultHandleBar from '../defaultHandleBar';
-import Container from '../container';
-import normalizeHeight from '../../utils/normalizeHeight';
-import convertHeight from '../../utils/convertHeight';
-import useHandleKeyboardEvents from '../../hooks/useHandleKeyboardEvents';
 import useAnimatedValue from '../../hooks/useAnimatedValue';
+import useHandleAndroidBackButtonClose from '../../hooks/useHandleAndroidBackButtonClose';
+import useHandleKeyboardEvents from '../../hooks/useHandleKeyboardEvents';
+import convertHeight from '../../utils/convertHeight';
+import normalizeHeight from '../../utils/normalizeHeight';
+import separatePaddingStyles from '../../utils/separatePaddingStyles';
 import Backdrop from '../backdrop';
+import Container from '../container';
+import DefaultHandleBar from '../defaultHandleBar';
 import {
-  type BottomSheetProps,
-  type ToValue,
   ANIMATIONS,
-  type BottomSheetMethods,
   CUSTOM_BACKDROP_POSITIONS,
   type BOTTOMSHEET,
+  type BottomSheetMethods,
+  type BottomSheetProps,
+  type ToValue,
 } from './types.d';
-import useHandleAndroidBackButtonClose from '../../hooks/useHandleAndroidBackButtonClose';
-import separatePaddingStyles from '../../utils/separatePaddingStyles';
 
 /**
  * Main bottom sheet component
@@ -106,8 +106,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     const contentWrapperRef = useRef<ComponentRef<typeof Animated.View>>(null);
 
-    /** cached _nativeTag property of content container */
-    const cachedContentWrapperNativeTag = useRef<number | undefined>(undefined);
+    /** cached unique identifier of content container */
+    const cachedContentWrapperId = useRef<
+      { field: string; value: unknown } | undefined
+    >(undefined);
 
     // here we separate all padding that may be applied via contentContainerStyle prop,
     // these paddings will be applied to the `View` diretly wrapping `ChildNodes` in content container.
@@ -241,21 +243,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       if (view === 'handlebar' && disableDragHandlePanning) return null;
       if (view === 'contentwrapper' && disableBodyPanning) return null;
       return PanResponder.create({
-        onMoveShouldSetPanResponder: (evt) => {
-          /**
-           * `FiberNode._nativeTag` is stable across renders so we use it to determine
-           * whether content container or it's child should respond to touch move gesture.
-           *
-           * The logic is, when content container is laid out, we extract it's _nativeTag property and cache it
-           * So later when a move gesture event occurs within it, we compare the cached _nativeTag with the _nativeTag of
-           * the event target's _nativeTag, if they match, then content container should respond, else its children should.
-           * Also, when the target is the handle bar, we le it handle geture unless panning is disabled through props
-           */
-          return view === 'handlebar'
-            ? true
-            : cachedContentWrapperNativeTag.current ===
-                // @ts-expect-error
-                evt?.target?._nativeTag;
+        onMoveShouldSetPanResponderCapture: (evt) => {
+          if (view === 'handlebar') return true;
+          const cached = cachedContentWrapperId.current;
+          if (!cached) return false; // this signature alone should fix issue #34
+          // @ts-expect-error _private field access
+          return cached?.value === evt?.target?.[cached?.field];
         },
         onPanResponderMove: (_, gestureState) => {
           if (gestureState.dy > 0) {
@@ -304,17 +297,54 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     /* eslint-enable react/no-unstable-nested-components, react-native/no-inline-styles */
 
     /**
-     * Extracts and caches the _nativeTag property of ContentWrapper
+     * Extracts and caches either `_nativeTag` or `__nativeTag` or `__internalInstanceHandle` or `_internalFiberInstanceHandleDEV`
+     * reference of the `ContentWrapper` component based on which is available. Either will do for
+     * identifying the content wrapper in PanResponder
      */
-    let extractNativeTag = useCallback(({ target }: LayoutChangeEvent) => {
-      const tag =
-        Platform.OS === 'web'
-          ? undefined
-          : // @ts-expect-error
-            target?._nativeTag;
-      if (!cachedContentWrapperNativeTag.current)
-        cachedContentWrapperNativeTag.current = tag;
-    }, []);
+    const cacheElementReference = useCallback(
+      ({ currentTarget }: LayoutChangeEvent) => {
+        const fabricInstanceHandleKey = '__internalInstanceHandle';
+        // @ts-expect-error `Fabric` renderer's instance handle reference/pointer
+        const fabricInstanceHandle = currentTarget?.[fabricInstanceHandleKey];
+
+        const oldNativeTagKey = '_nativeTag';
+        // @ts-expect-error `Paper` renderer's native tag number
+        const oldNativeTag = currentTarget?.[oldNativeTagKey];
+
+        const newNativeTagKey = '__nativeTag';
+        // @ts-expect-error `Fabric` renderer's native tag number
+        const newNativeTag = currentTarget?.[newNativeTagKey];
+
+        const paperInstanceHandleKey = '_internalFiberInstanceHandleDEV';
+        // @ts-expect-error `Paper` renderer's instance handle equivalent
+        const paperInstanceHandle = currentTarget?.[paperInstanceHandleKey];
+
+        if (!cachedContentWrapperId.current) {
+          if (fabricInstanceHandle)
+            cachedContentWrapperId.current = {
+              field: fabricInstanceHandleKey,
+              value: fabricInstanceHandle,
+            };
+          else if (oldNativeTag)
+            cachedContentWrapperId.current = {
+              field: oldNativeTagKey,
+              value: oldNativeTag,
+            };
+          else if (newNativeTag)
+            cachedContentWrapperId.current = {
+              field: newNativeTagKey,
+              value: newNativeTag,
+            };
+          else if (paperInstanceHandle)
+            cachedContentWrapperId.current = {
+              field: paperInstanceHandleKey,
+              value: paperInstanceHandle,
+            };
+          else cachedContentWrapperId.current = undefined;
+        }
+      },
+      []
+    );
 
     /**
      * Expands the bottom sheet.
@@ -484,7 +514,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           <Animated.View
             ref={contentWrapperRef}
             key={'BottomSheetContentContainer'}
-            onLayout={extractNativeTag}
+            onLayout={cacheElementReference}
             /* Merge external and internal styles carefully and orderly */
             style={[
               !modal ? materialStyles.contentContainerShadow : false,
