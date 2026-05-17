@@ -39,6 +39,7 @@ const Configuration: UserConfig = {
         '🧪 test',
       ],
     ],
+    'footer-max-line-length': [2, 'always', 400],
   },
 };
 
