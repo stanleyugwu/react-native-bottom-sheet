@@ -551,6 +551,16 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             style={[
               !modal ? materialStyles.contentContainerShadow : false,
               materialStyles.contentContainer,
+              // Apply default top-corner radii only when the user hasn't
+              // supplied a `borderRadius` shorthand since RN's render layer keeps
+              // individual corner properties over the shorthand, so leaving
+              // them in would silently override the user's value.
+              !(
+                sepStyles?.otherStyles &&
+                'borderRadius' in sepStyles.otherStyles
+              )
+                ? materialStyles.contentContainerTopRadius
+                : false,
               // we apply styles other than padding here
               sepStyles?.otherStyles,
               {
@@ -564,8 +574,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             <PolymorphicHandleBar />
 
             <View
-              // we apply padding styles here to not affect drag handle above
-              style={sepStyles?.paddingStyles}
+              // we apply padding styles here to not affect drag handle above.
+              // `flex: 1` lets this fill the remaining space below the drag
+              // handle so children sized with `flex` or percentage heights
+              // render against the actual available area (issue #36).
+              style={[materialStyles.contentBody, sepStyles?.paddingStyles]}
             >
               {ChildNodes}
             </View>
@@ -584,8 +597,13 @@ const materialStyles = StyleSheet.create({
     backgroundColor: '#F7F2FA',
     width: '100%',
     overflow: 'hidden',
+  },
+  contentContainerTopRadius: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+  },
+  contentBody: {
+    flex: 1,
   },
   contentContainerShadow:
     Platform.OS === 'android'
