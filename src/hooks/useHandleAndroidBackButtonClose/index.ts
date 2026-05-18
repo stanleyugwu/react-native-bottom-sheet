@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { BackHandler, type NativeEventSubscription } from 'react-native';
+import {
+  BackHandler,
+  Platform,
+  type NativeEventSubscription,
+} from 'react-native';
 import type { UseHandleAndroidBackButtonClose } from './types.d';
 
 /**
@@ -15,8 +19,9 @@ const useHandleAndroidBackButtonClose: UseHandleAndroidBackButtonClose = (
   closeSheet,
   sheetOpen = false
 ) => {
-  const handler = useRef<NativeEventSubscription | null>(null);
+  const handler = useRef<NativeEventSubscription | undefined>(undefined);
   useEffect(() => {
+    if (Platform.OS !== 'android') return;
     handler.current = BackHandler.addEventListener('hardwareBackPress', () => {
       if (sheetOpen) {
         if (shouldClose) {
