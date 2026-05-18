@@ -253,8 +253,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           if (view === 'handlebar') return true;
           const cached = cachedContentWrapperId.current;
           if (!cached) return false; // this signature alone should fix issue #34
-          // @ts-expect-error _private field access
-          return cached?.value === evt?.target?.[cached?.field];
+          return (
+            // @ts-expect-error _private field access
+            cached?.value === evt?.target?.[cached?.field] ||
+            // @ts-expect-error _private field access
+            cached?.value === evt?.currentTarget?.[cached?.field]
+          );
         },
         onPanResponderMove: (_, gestureState) => {
           if (gestureState.dy > 0) {
@@ -308,7 +312,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
      * identifying the content wrapper in PanResponder
      */
     const cacheElementReference = useCallback(
-      ({ currentTarget }: LayoutChangeEvent) => {
+      ({ currentTarget, nativeEvent }: LayoutChangeEvent) => {
         const fabricInstanceHandleKey = '__internalInstanceHandle';
         // @ts-expect-error `Fabric` renderer's instance handle reference/pointer
         const fabricInstanceHandle = currentTarget?.[fabricInstanceHandleKey];
@@ -346,7 +350,18 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               field: paperInstanceHandleKey,
               value: paperInstanceHandle,
             };
-          else cachedContentWrapperId.current = undefined;
+          // Check known stable keys for web if none of above exists
+          else if (Platform.OS === 'web') {
+            const responderKey = '__reactResponderId';
+            // @ts-expect-error `.target` is untyped
+            const responderId = nativeEvent?.target?.[responderKey];
+            if (responderId) {
+              cachedContentWrapperId.current = {
+                field: responderKey,
+                value: responderId,
+              };
+            }
+          } else cachedContentWrapperId.current = undefined;
         }
       },
       []
