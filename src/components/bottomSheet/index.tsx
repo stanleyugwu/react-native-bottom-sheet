@@ -128,12 +128,18 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           return value === 1 ? 1 : 1 - Math.pow(2, -10 * value);
         },
         _springEasingFn(value: number) {
-          const c4 = (2 * Math.PI) / 2.5;
+          const decay = 9;
+          const multiplier = 4.5;
+          const divisor = 2.3;
+
+          const c4 = (2 * Math.PI) / divisor;
+
           return value === 0
             ? 0
             : value === 1
               ? 1
-              : Math.pow(2, -9 * value) * Math.sin((value * 4.5 - 0.75) * c4) +
+              : Math.pow(2, -decay * value) *
+                  Math.sin((value * multiplier - 0.75) * c4) +
                 1;
         },
         animateContainerHeight(toValue: ToValue, duration: number = 0) {
@@ -371,20 +377,31 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     };
 
     const closeBottomSheet = () => {
-      // 1. fade backdrop
-      // 2. if using fade animation, close container, set content wrapper height to 0.
-      // else animate content container height & container height to 0, in sequence
-      Animators.animateBackdropMaskOpacity(0, closeDuration).start((anim) => {
-        if (anim.finished) {
-          if (animationType === ANIMATIONS.FADE) {
+      if (animationType === ANIMATIONS.FADE) {
+        // For fade, sheet opacity is tied to the backdrop, so we wait for the
+        // backdrop fade to complete before snapping the container shut.
+        Animators.animateBackdropMaskOpacity(0, closeDuration).start((anim) => {
+          if (anim.finished) {
             Animators.animateContainerHeight(0).start();
             _animatedHeight.setValue(0);
-          } else {
-            Animators.animateHeight(0, closeDuration).start();
-            Animators.animateContainerHeight(0).start();
           }
-        }
-      });
+        });
+      } else if (animationType === ANIMATIONS.SLIDE) {
+        // Run backdrop fade and height slide-out in parallel so flick-to-close
+        // doesn't pause mid-flight waiting for the (faster) backdrop fade.
+        // Snap the outer container to 0 only after the sheet has
+        // finished sliding out so the slide animation isn't clipped.
+        Animators.animateBackdropMaskOpacity(0, closeDuration).start();
+        Animators.animateHeight(0, closeDuration).start((anim) => {
+          if (anim.finished) Animators.animateContainerHeight(0).start();
+        });
+      } else {
+        Animators.animateBackdropMaskOpacity(0, closeDuration).start();
+        // `animateHeight` and `animateContainerHeight` below need to run in parallel
+        // else there might be a noticeable flicker of sheet content
+        Animators.animateHeight(0, closeDuration).start();
+        Animators.animateContainerHeight(0).start();
+      }
       setSheetOpen(false);
       keyboardHandler?.removeKeyboardListeners();
       Keyboard.dismiss();
