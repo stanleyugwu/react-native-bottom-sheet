@@ -23,7 +23,13 @@ export type UseHandleKeyboardEvents = (
   /** function that can drive/animate sheet height */
   SheetHeightAnimationDriver: HeightAnimationDriver,
   /** ref to the content wrapper view for calculating sheet offset when keyboard is out */
-  contentWrapperRef: RefObject<ComponentRef<typeof Animated.View> | null>
+  contentWrapperRef: RefObject<ComponentRef<typeof Animated.View> | null>,
+  /** duration of the keyboard open animation */
+  openDuration?: number,
+  /** duration of the keyboard close animation */
+  closeDuration?: number,
+  /** height of the sheet's container to prevent overshooting */
+  containerHeight?: number
 ) => HookReturn;
 
 export type HeightAnimationDriver = (

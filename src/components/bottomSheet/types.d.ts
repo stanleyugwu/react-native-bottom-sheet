@@ -1,10 +1,10 @@
+import React from 'react';
 import { Animated, OpaqueColorValue, ViewProps, ViewStyle } from 'react-native';
 import {
   ANIMATIONS,
   CUSTOM_BACKDROP_POSITIONS,
   type BottomSheetMethods,
 } from '../../types.d';
-import React from 'react';
 
 export type SheetStyleProp = Omit<
   ViewStyle,
@@ -24,25 +24,43 @@ type AnimationType = ANIMATIONS | Lowercase<keyof typeof ANIMATIONS>;
 type AnimationEasingFunction = (x: number) => number;
 
 /**
- * Props types for bottom sheet component
+ * Base props types for bottom sheet component
  */
-interface BottomSheetProps {
+interface BottomSheetBaseProps {
   /**
-   * Height of the bottom sheet when expanded. This value will be relative to `containerHeight`
-   * if it's supplied, or the screen's height otherwise.
-   * Value can be in pixel units (number) or percentage (string).
+   * The snap point index the sheet opens to (when `snapPoints` is provided). Indexes are
+   * 0-based in ascending order, so `0` is the smallest point. The value is clamped to the
+   * valid range.
    *
-   * `Default: '50%'`
+   * `Note:` This is the initial open position only — it is not a controlled/reactive prop.
+   * Use the ref methods (`snapToIndex`, `expand`, `collapse`) to move the sheet afterwards.
+   * Ignored when `snapPoints` is not provided.
    *
-   * @type {number | string}
-   * @default '50%'
-   * @example
-   * height={300}
-   * // or
-   * height={'50%'}
-   *
+   * `Default: 0`
+   * @type {number}
+   * @default 0
    */
-  height?: number | string;
+  index?: number;
+
+  /**
+   * Callback fired whenever the sheet settles on a snap point — both from a drag gesture
+   * and from the programmatic methods (`open`, `snapToIndex`, `expand`, `collapse`). The
+   * argument is the resting snap index, or `-1` when the sheet closes.
+   *
+   * Useful for syncing external/controlled UI to the sheet's current position.
+   *
+   * `Default: undefined`
+   * @type {(index: number) => void}
+   * @default undefined
+   * @example
+   * ```tsx
+   * <BottomSheet
+   *   snapPoints={['30%', '60%', '90%']}
+   *   onSnap={(index) => console.log('snapped to', index)} // 0..2, or -1 on close
+   * />
+   * ```
+   */
+  onSnap?: (index: number) => void;
 
   /**
    * Extra styles to apply to bottom sheet (the `View` that wraps its children).
@@ -279,8 +297,7 @@ interface BottomSheetProps {
 
   /**
    * Custom easing function for driving sheet's animation.\
-   * If provided, easing function for passed `animationType` will be replaced with this,
-   * rendering `animationType` prop obsolete
+   * If provided, easing function for passed `animationType` will be replaced with this.
    *
    * `Default: ANIMATIONS.SLIDE`
    * @type {(AnimationEasingFunction)}
@@ -396,12 +413,59 @@ interface BottomSheetProps {
   disableKeyboardHandling?: boolean;
 }
 
+export type BottomSheetProps = BottomSheetBaseProps &
+  (
+    | {
+        /**
+         * Height of the bottom sheet when expanded. This value will be relative to `containerHeight`
+         * if it's supplied, or the screen's height otherwise.
+         * Value can be in pixel units (number) or percentage (string).
+         *
+         * `Default: '50%'`
+         *
+         * @type {number | string}
+         * @default '50%'
+         * @example
+         * height={300}
+         * // or
+         * height={'50%'}
+         */
+        height?: number | string;
+        snapPoints?: never;
+      }
+    | {
+        height?: never;
+        /**
+         * Resting positions (detents) the bottom sheet can settle on. Accepts a mix of pixel
+         * numbers and percentage strings, e.g. `['25%', '50%', 600]`. Percentages are relative
+         * to `containerHeight` (the device screen by default), exactly like the `height` prop.
+         *
+         * When dragged, the sheet snaps to the nearest point on release (a fast flick carries it
+         * further); dragging below the smallest point closes it when `closeOnDragDown` is `true`.
+         * Move between points programmatically with the ref methods `snapToIndex`, `expand`, and
+         * `collapse`.
+         *
+         * `Note:` Points are sorted ascending internally, so a snap `index` always refers to
+         * smallest → largest. When provided, this prop takes precedence over `height`.
+         * Drag-to-snap applies to the `slide` and `spring` animations; with `fade` the sheet
+         * simply opens at the active snap point.
+         *
+         * `Default: undefined` (single-height behavior via `height`)
+         * @type {(number | string)[]}
+         * @default undefined
+         * @example
+         * snapPoints={['30%', '60%', '90%']}
+         */
+        snapPoints: (number | string)[];
+      }
+  );
+
 export {
+  AnimationEasingFunction,
   ANIMATIONS,
+  BOTTOMSHEET,
+  BottomSheetMethods,
   BottomSheetProps,
   CUSTOM_BACKDROP_POSITIONS,
-  BottomSheetMethods,
-  BOTTOMSHEET,
-  AnimationEasingFunction,
   ToValue,
 };

@@ -20,16 +20,20 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import {
+  CLOSE_SNAP_RATIO,
   DEFAULT_ANIMATION,
   DEFAULT_BACKDROP_MASK_COLOR,
   DEFAULT_CLOSE_ANIMATION_DURATION,
   DEFAULT_HEIGHT,
   DEFAULT_OPEN_ANIMATION_DURATION,
+  DEFAULT_SNAP_INDEX,
+  SNAP_VELOCITY_FACTOR,
 } from '../../constant';
 import useAnimatedValue from '../../hooks/useAnimatedValue';
 import useHandleAndroidBackButtonClose from '../../hooks/useHandleAndroidBackButtonClose';
 import useHandleKeyboardEvents from '../../hooks/useHandleKeyboardEvents';
 import convertHeight from '../../utils/convertHeight';
+import resolveSnapPoints from '../../utils/resolveSnapPoints';
 import normalizeHeight from '../../utils/normalizeHeight';
 import separatePaddingStyles from '../../utils/separatePaddingStyles';
 import Backdrop from '../backdrop';
@@ -55,6 +59,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       animationType = DEFAULT_ANIMATION,
       closeOnBackdropPress = true,
       height = DEFAULT_HEIGHT,
+      snapPoints,
+      index = DEFAULT_SNAP_INDEX,
+      onSnap,
       hideDragHandle = false,
       android_backdropMaskRippleColor,
       dragHandleStyle,
@@ -88,6 +95,15 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       close() {
         closeBottomSheet();
       },
+      snapToIndex(snapIndex: number) {
+        snapToIndex(snapIndex);
+      },
+      expand() {
+        snapToIndex(_resolvedSnapPoints.length - 1);
+      },
+      collapse() {
+        snapToIndex(0);
+      },
     }));
 
     /**
@@ -98,6 +114,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const SCREEN_HEIGHT = useWindowDimensions().height; // actual container height is measured after layout
     const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
     const [sheetOpen, setSheetOpen] = useState(false);
+
+    /** index of the snap point the sheet is currently resting on (ascending order) */
+    const [activeSnapIndex, setActiveSnapIndex] = useState(index);
+
+    /** sheet height captured when a pan gesture starts, so drag math is relative to it */
+    const panStartHeight = useRef(0);
 
     // animated properties
     const _animatedContainerHeight = useAnimatedValue(0);
@@ -197,38 +219,72 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     );
 
     /**
-     * `height` prop converted from percentage e.g `'50%'` to pixel unit e.g `320`,
-     * relative to `containerHeight` or `DEVICE_SCREEN_HEIGHT`.
-     * Also auto calculates and adjusts container wrapper height when `containerHeight`
-     * or `height` changes
+     * Resolved resting heights (in pixels), ascending. When `snapPoints` is provided we
+     * resolve the whole array; otherwise we fall back to a single-element array holding the
+     * `height` prop, so the rest of the component treats both cases uniformly. An empty/all
+     * invalid `snapPoints` also falls back to `height`.
      */
-    const convertedHeight = useMemo(() => {
-      const newHeight = convertHeight(height, containerHeight, hideDragHandle);
+    const _resolvedSnapPoints = useMemo(() => {
+      const hasSnapPoints = Array.isArray(snapPoints) && snapPoints.length > 0;
+      if (hasSnapPoints) {
+        const resolved = resolveSnapPoints(
+          snapPoints,
+          containerHeight,
+          hideDragHandle
+        );
+        if (resolved.length) return resolved;
+      }
+      return [convertHeight(height, containerHeight, hideDragHandle)];
+    }, [snapPoints, height, containerHeight, hideDragHandle]);
+
+    /** whether the sheet is operating in multi snap-point mode */
+    const _hasSnapPoints = _resolvedSnapPoints.length > 1;
+
+    /** active index, clamped to the currently valid range */
+    const _safeSnapIndex = Math.min(
+      Math.max(activeSnapIndex, 0),
+      _resolvedSnapPoints.length - 1
+    );
+
+    /**
+     * Pixel height of the snap point the sheet currently rests on. Keeps the original
+     * `convertedHeight` name so every downstream consumer (keyboard handler, backdrop,
+     * pan math) is unaffected.
+     */
+    const convertedHeight = _resolvedSnapPoints[_safeSnapIndex] ?? 0;
+
+    /**
+     * Re-syncs the animated sheet height to its active snap point when the geometry changes
+     * (orientation / `containerHeight` / `snapPoints` / `height`) while the sheet is open.
+     * Guarded by a geometry signature so it never re-animates on a user/programmatic snap
+     * (an `activeSnapIndex` change) — those are already animated by their own handlers.
+     */
+    const _geometryKey = _resolvedSnapPoints.join();
+    const _prevGeometryKey = useRef(_geometryKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+      if (_prevGeometryKey.current === _geometryKey) return;
+      _prevGeometryKey.current = _geometryKey;
+      if (!sheetOpen) return;
+
+      if (activeSnapIndex !== _safeSnapIndex) {
+        setActiveSnapIndex(_safeSnapIndex);
+        onSnap?.(_safeSnapIndex);
+      }
 
       // FIXME: we use interface-undefined but existing property `_value` here and it's risky
       // @ts-expect-error
       const curHeight = _animatedHeight._value;
-      if (sheetOpen && newHeight !== curHeight) {
+      if (convertedHeight !== curHeight) {
         if (animationType === ANIMATIONS.FADE)
-          _animatedHeight.setValue(newHeight);
+          _animatedHeight.setValue(convertedHeight);
         else
           Animators.animateHeight(
-            newHeight,
-            newHeight > curHeight ? openDuration : closeDuration
+            convertedHeight,
+            convertedHeight > curHeight ? openDuration : closeDuration
           ).start();
       }
-      return newHeight;
-    }, [
-      containerHeight,
-      height,
-      animationType,
-      sheetOpen,
-      Animators,
-      _animatedHeight,
-      closeDuration,
-      hideDragHandle,
-      openDuration,
-    ]);
+    });
 
     /**
      * If `disableKeyboardHandling` is false, handles keyboard pop up for both platforms,
@@ -239,7 +295,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       convertedHeight,
       sheetOpen,
       Animators.animateHeight,
-      contentWrapperRef
+      contentWrapperRef,
+      openDuration,
+      closeDuration,
+      containerHeight
     );
 
     /**
@@ -260,27 +319,74 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             cached?.value === evt?.currentTarget?.[cached?.field]
           );
         },
+        onPanResponderGrant: () => {
+          // capture the resting height when the drag starts, so movement is measured
+          // relative to it (handles dragging from any snap point or mid-animation)
+          // @ts-expect-error private `_value` field (see FIXME above)
+          panStartHeight.current = _animatedHeight._value;
+        },
         onPanResponderMove: (_, gestureState) => {
-          if (gestureState.dy > 0) {
-            // backdrop opacity relative to the height of the content sheet
-            // to makes the backdrop more transparent as you drag the content sheet down
-            const relativeOpacity = 1 - gestureState.dy / convertedHeight;
-            _animatedBackdropMaskOpacity.setValue(relativeOpacity);
-
-            if (animationType !== ANIMATIONS.FADE)
-              _animatedHeight.setValue(convertedHeight - gestureState.dy);
-          }
+          const lowestSnap = _resolvedSnapPoints[0] ?? 0;
+          const maxSnap =
+            _resolvedSnapPoints[_resolvedSnapPoints.length - 1] ?? 0;
+          // clamp between fully closed and the largest snap point
+          const next = Math.min(
+            Math.max(panStartHeight.current - gestureState.dy, 0),
+            maxSnap
+          );
+          // backdrop stays opaque while at/above the smallest snap point and only
+          // fades as the sheet is dragged below it toward close
+          _animatedBackdropMaskOpacity.setValue(
+            lowestSnap > 0 ? Math.min(Math.max(next / lowestSnap, 0), 1) : 0
+          );
+          if (animationType !== ANIMATIONS.FADE) _animatedHeight.setValue(next);
         },
         onPanResponderRelease(_, gestureState) {
-          if (gestureState.dy >= convertedHeight / 3 && closeOnDragDown) {
+          const lowestSnap = _resolvedSnapPoints[0] ?? 0;
+          const maxSnap =
+            _resolvedSnapPoints[_resolvedSnapPoints.length - 1] ?? 0;
+          const next = Math.min(
+            Math.max(panStartHeight.current - gestureState.dy, 0),
+            maxSnap
+          );
+          // project where a flick would land so a fast drag carries further than a
+          // slow one (velocity only influences multi snap-point sheets)
+          const projected = _hasSnapPoints
+            ? next - gestureState.vy * SNAP_VELOCITY_FACTOR
+            : next;
+
+          // dragged/flung below the smallest snap point past the close threshold
+          if (closeOnDragDown && projected < lowestSnap * CLOSE_SNAP_RATIO) {
             closeBottomSheet();
-          } else {
-            _animatedBackdropMaskOpacity.setValue(1);
-            if (animationType !== ANIMATIONS.FADE)
-              Animators.animateHeight(
-                convertedHeight,
-                openDuration / 2
-              ).start();
+            return;
+          }
+
+          _animatedBackdropMaskOpacity.setValue(1);
+
+          // fade has no height drag; just restore the backdrop and keep the snap point
+          if (animationType === ANIMATIONS.FADE) return;
+
+          // settle on the snap point nearest the projected resting position
+          let targetIndex = 0;
+          let minDistance = Infinity;
+          for (let i = 0; i < _resolvedSnapPoints.length; i++) {
+            const distance = Math.abs(
+              (_resolvedSnapPoints[i] ?? 0) - projected
+            );
+            if (distance < minDistance) {
+              minDistance = distance;
+              targetIndex = i;
+            }
+          }
+
+          Animators.animateHeight(
+            _resolvedSnapPoints[targetIndex] ?? 0,
+            openDuration / 2
+          ).start();
+
+          if (targetIndex !== _safeSnapIndex) {
+            setActiveSnapIndex(targetIndex);
+            onSnap?.(targetIndex);
           }
         },
       }).panHandlers;
@@ -368,30 +474,43 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     );
 
     /**
-     * Expands the bottom sheet.
+     * Expands the bottom sheet. Opens to the snap point at `toIndex` (defaults to the
+     * `index` prop), resetting the active snap point so reopening always lands on it.
      */
-    const openBottomSheet = () => {
+    const openBottomSheet = (toIndex: number = index) => {
+      const targetIndex = Math.min(
+        Math.max(Math.trunc(toIndex), 0),
+        _resolvedSnapPoints.length - 1
+      );
+      const targetHeight = _resolvedSnapPoints[targetIndex] ?? 0;
+      setActiveSnapIndex(targetIndex);
+
       // 1. open container
-      // 2. if using fade animation, set content container height convertedHeight manually, animate backdrop.
+      // 2. if using fade animation, set content container height manually, animate backdrop.
       // else, animate backdrop and content container height in parallel
       Animators.animateContainerHeight(
-        !modal ? convertedHeight : containerHeight
+        !modal ? targetHeight : containerHeight
       ).start();
       if (animationType === ANIMATIONS.FADE) {
-        _animatedHeight.setValue(convertedHeight);
+        _animatedHeight.setValue(targetHeight);
         Animators.animateBackdropMaskOpacity(1, openDuration).start();
       } else {
         Animators.animateBackdropMaskOpacity(1, openDuration).start();
-        Animators.animateHeight(convertedHeight, openDuration).start();
+        Animators.animateHeight(targetHeight, openDuration).start();
       }
+
+      const wasOpen = sheetOpen;
       setSheetOpen(true);
 
-      if (onOpen) {
+      if (!wasOpen && onOpen) {
         onOpen();
       }
+      onSnap?.(targetIndex);
     };
 
     const closeBottomSheet = () => {
+      if (!sheetOpen) return;
+
       if (animationType === ANIMATIONS.FADE) {
         // For fade, sheet opacity is tied to the backdrop, so we wait for the
         // backdrop fade to complete before snapping the container shut.
@@ -418,11 +537,65 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         Animators.animateContainerHeight(0).start();
       }
       setSheetOpen(false);
+      setActiveSnapIndex(-1);
       keyboardHandler?.removeKeyboardListeners();
       Keyboard.dismiss();
 
       if (onClose) {
         onClose();
+      }
+      onSnap?.(-1);
+    };
+
+    /**
+     * Animates the sheet to the snap point at `toIndex` (clamped). A negative index closes
+     * the sheet; if the sheet is closed, it opens at the target snap point. The animation is
+     * always driven off the live height so it never silently no-ops on a stale index.
+     */
+    const snapToIndex = (toIndex: number) => {
+      if (toIndex < 0) {
+        closeBottomSheet();
+        return;
+      }
+      const clamped = Math.min(
+        Math.max(Math.trunc(toIndex), 0),
+        _resolvedSnapPoints.length - 1
+      );
+      if (!sheetOpen) {
+        openBottomSheet(clamped);
+        return;
+      }
+
+      const targetHeight = _resolvedSnapPoints[clamped] ?? 0;
+      // @ts-expect-error private `_value` field (see FIXME above)
+      const curHeight = _animatedHeight._value;
+
+      if (animationType === ANIMATIONS.FADE) {
+        if (curHeight !== targetHeight) {
+          Animators.animateBackdropMaskOpacity(0, openDuration / 2).start(
+            (anim) => {
+              if (anim.finished) {
+                _animatedHeight.setValue(targetHeight);
+                Animators.animateBackdropMaskOpacity(
+                  1,
+                  openDuration / 2
+                ).start();
+              }
+            }
+          );
+        }
+      } else {
+        _animatedBackdropMaskOpacity.setValue(1);
+        if (curHeight !== targetHeight) {
+          const duration =
+            targetHeight > curHeight ? openDuration : closeDuration;
+          Animators.animateHeight(targetHeight, duration).start();
+        }
+      }
+
+      if (clamped !== activeSnapIndex) {
+        setActiveSnapIndex(clamped);
+        onSnap?.(clamped);
       }
     };
 
@@ -519,7 +692,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           <View
             onLayout={containerViewLayoutHandler}
             style={{
+              position: 'absolute',
               height: passedContainerHeight,
+              width: 0,
+              opacity: 0,
             }}
           />
         ) : null}

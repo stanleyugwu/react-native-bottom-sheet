@@ -25,7 +25,10 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
   sheetHeight: number,
   sheetOpen: boolean,
   heightAnimationDriver: HeightAnimationDriver,
-  contentWrapperRef: RefObject<ComponentRef<typeof Animated.View> | null>
+  contentWrapperRef: RefObject<ComponentRef<typeof Animated.View> | null>,
+  openDuration = 400,
+  closeDuration = 200,
+  containerHeight?: number
 ) => {
   const SCREEN_HEIGHT = useWindowDimensions().height;
   const keyboardHideSubscription = useRef<EmitterSubscription | null>(null);
@@ -78,7 +81,14 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
                   Math.min(sheetHeight, fiftyPercent)
                 );
                 if (sheetIsOverlayed) newSheetHeight += keyboardHeight;
-                heightAnimationDriver(newSheetHeight, 400).start();
+
+                // Clamp to container height (or screen height fallback) to prevent overshooting
+                const maxAllowedHeight = containerHeight ?? SCREEN_HEIGHT;
+                if (newSheetHeight > maxAllowedHeight) {
+                  newSheetHeight = maxAllowedHeight;
+                }
+
+                heightAnimationDriver(newSheetHeight, openDuration).start();
               }
             );
           }
@@ -88,7 +98,8 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
       keyboardHideSubscription.current = Keyboard.addListener(
         'keyboardDidHide',
         (_) => {
-          if (sheetOpen) heightAnimationDriver(sheetHeight, 200).start();
+          if (sheetOpen)
+            heightAnimationDriver(sheetHeight, closeDuration).start();
         }
       );
       return unsubscribe;
@@ -101,6 +112,9 @@ const useHandleKeyboardEvents: UseHandleKeyboardEvents = (
     sheetOpen,
     heightAnimationDriver,
     contentWrapperRef,
+    openDuration,
+    closeDuration,
+    containerHeight,
   ]);
 
   return keyboardHandlingEnabled
