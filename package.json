@@ -1,6 +1,6 @@
 {
   "name": "@devvie/bottom-sheet",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "description": "The 😎smart , 📦tiny , and 🎗flexible bottom sheet your app craves 🚀",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
