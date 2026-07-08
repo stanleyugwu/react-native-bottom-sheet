@@ -35,7 +35,7 @@ yarn add @devvie/bottom-sheet
 
 ## 🤔 Why this bottom sheet?
 
-🚀 **Plug and play** — `npm install` and you're done. Zero third-party dependencies, no Babel plugins, no pod install. Built entirely on React Native's own APIs.
+🚀 **Zero dependencies** — `npm install` and you're done. No third-party dependencies, no Babel plugins, no pod install. Built entirely on React Native's own APIs. Just plug and play.
 
 ⌨️ **Keyboard intelligence** — The sheet auto-detects the keyboard mode (`adjustPan` / `adjustResize`), measures its own live position on screen, and animates to a safe height when a text input is focused — all without any configuration or wrapper components.
 
