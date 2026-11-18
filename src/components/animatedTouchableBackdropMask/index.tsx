@@ -38,7 +38,7 @@ const AnimatedTouchableBackdropMask = ({
 };
 
 const styles = StyleSheet.create({
-  sharedBackdropStyle: StyleSheet.absoluteFillObject,
+  sharedBackdropStyle: StyleSheet.absoluteFill,
 });
 
 export default AnimatedTouchableBackdropMask;
