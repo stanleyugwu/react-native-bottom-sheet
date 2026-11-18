@@ -1,10 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import React from 'react';
-import { Dimensions, View, Text } from 'react-native';
+import { Animated, Dimensions, StyleSheet, View, Text } from 'react-native';
 import { render, screen, act } from '@testing-library/react-native';
 import resolveSnapPoints from '../utils/resolveSnapPoints';
 import { DEFAULT_HANDLE_BAR_DEFAULT_HEIGHT } from '../components/defaultHandleBar';
 import BottomSheet from '../components/bottomSheet';
+import Backdrop from '../components/backdrop';
+import AnimatedTouchableBackdropMask from '../components/animatedTouchableBackdropMask';
+import { CUSTOM_BACKDROP_POSITIONS } from '../types.d';
 import type { BottomSheetMethods } from '../types.d';
 
 // `convertHeight` (used by `resolveSnapPoints`) reads the device screen height to decide
@@ -275,5 +278,40 @@ describe('BottomSheet Component', () => {
       ref.current?.snapToIndex(1);
     });
     expect(onSnap).toHaveBeenLastCalledWith(1);
+  });
+
+  it('applies StyleSheet.absoluteFill to AnimatedTouchableBackdropMask and Backdrop behind position', async () => {
+    const { unmount } = await render(
+      <AnimatedTouchableBackdropMask
+        isPressable={true}
+        pressHandler={jest.fn()}
+        testID="touchable-mask"
+      />
+    );
+    const mask = screen.getByTestId('touchable-mask');
+    expect(StyleSheet.flatten(mask.props.style)).toMatchObject(
+      StyleSheet.absoluteFill
+    );
+    unmount();
+
+    await render(
+      <Backdrop
+        BackdropComponent={() => <View testID="custom-backdrop-content" />}
+        backdropPosition={CUSTOM_BACKDROP_POSITIONS.BEHIND}
+        sheetOpen={true}
+        containerHeight={800}
+        contentContainerHeight={300}
+        closeOnPress={true}
+        _animatedHeight={new Animated.Value(0)}
+        rippleColor={undefined}
+        pressHandler={jest.fn()}
+        animatedBackdropOpacity={new Animated.Value(1)}
+        backdropColor="rgba(0,0,0,0.5)"
+      />
+    );
+    const customWrapper = screen.getByTestId('custom-backdrop-content').parent;
+    expect(StyleSheet.flatten(customWrapper?.props.style)).toMatchObject(
+      StyleSheet.absoluteFill
+    );
   });
 });

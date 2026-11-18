@@ -25,7 +25,7 @@ const Backdrop = ({
     <View
       style={
         backdropPosition === CUSTOM_BACKDROP_POSITIONS.BEHIND
-          ? StyleSheet.absoluteFillObject
+          ? StyleSheet.absoluteFill
           : { height: heightStyle }
       }
     >
