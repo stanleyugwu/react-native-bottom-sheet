@@ -4,8 +4,16 @@ import type { DefaultHandleBarProps } from './types.d';
 /**
  * This is the default handle bar component used when no custom handle bar component is provided
  */
-const DefaultHandleBar = ({ style, ...otherProps }: DefaultHandleBarProps) => (
-  <View style={materialStyles.dragHandleContainer} {...otherProps}>
+const DefaultHandleBar = ({
+  style,
+  testID = 'default-handle-bar',
+  ...otherProps
+}: DefaultHandleBarProps) => (
+  <View
+    testID={testID}
+    style={materialStyles.dragHandleContainer}
+    {...otherProps}
+  >
     <View style={[materialStyles.dragHandle, style]} />
   </View>
 );

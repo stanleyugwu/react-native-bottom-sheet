@@ -13,6 +13,8 @@ import type { BottomSheetMethods } from '../types.d';
 // `convertHeight` (used by `resolveSnapPoints`) reads the device screen height to decide
 // when to deduct the drag handle from the top-most point, so pin it to a known value.
 const SCREEN_HEIGHT = 800;
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
 
 beforeAll(() => {
   jest.spyOn(Dimensions, 'get').mockReturnValue({
@@ -105,6 +107,7 @@ describe('BottomSheet Component', () => {
     // Open sheet
     await act(async () => {
       ref.current?.open();
+      await sleep(450);
     });
 
     expect(onOpen).toHaveBeenCalledTimes(1);
@@ -119,6 +122,7 @@ describe('BottomSheet Component', () => {
     // Close sheet
     await act(async () => {
       ref.current?.close();
+      await sleep(450);
     });
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -181,8 +185,44 @@ describe('BottomSheet Component', () => {
     // snapToIndex(-1) closes sheet
     await act(async () => {
       ref.current?.snapToIndex(-1);
+      await sleep(250);
     });
     expect(onSnap).toHaveBeenLastCalledWith(-1);
+  });
+
+  it('functions as close() when collapse() is called with height instead of snapPoints', async () => {
+    const onClose = jest.fn();
+    const onOpen = jest.fn();
+    const ref = React.createRef<BottomSheetMethods>();
+
+    await render(
+      <BottomSheet ref={ref} height={300} onOpen={onOpen} onClose={onClose}>
+        <View>
+          <Text>Single Height Content</Text>
+        </View>
+      </BottomSheet>
+    );
+
+    // Open sheet
+    await act(async () => {
+      ref.current?.open();
+      await sleep(450);
+    });
+    expect(onOpen).toHaveBeenCalledTimes(1);
+
+    // Calling collapse() when only height is supplied should close the sheet
+    await act(async () => {
+      ref.current?.collapse();
+      await sleep(450);
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    // Calling expand() when closed should open the sheet
+    await act(async () => {
+      ref.current?.expand();
+      await sleep(450);
+    });
+    expect(onOpen).toHaveBeenCalledTimes(2);
   });
 
   it('synchronizes activeSnapIndex and triggers callbacks on dynamic snapPoints changes', async () => {
@@ -210,20 +250,18 @@ describe('BottomSheet Component', () => {
 
     // Dynamically change snapPoints to only have 2 points (index 2 becomes out of bounds)
     onSnap.mockClear();
-    await act(async () => {
-      await rerender(
-        <BottomSheet
-          ref={ref}
-          snapPoints={['30%', '60%']}
-          index={2}
-          onSnap={onSnap}
-        >
-          <View>
-            <Text>Content</Text>
-          </View>
-        </BottomSheet>
-      );
-    });
+    await rerender(
+      <BottomSheet
+        ref={ref}
+        snapPoints={['30%', '60%']}
+        index={2}
+        onSnap={onSnap}
+      >
+        <View>
+          <Text>Content</Text>
+        </View>
+      </BottomSheet>
+    );
 
     // Verify it clamped to index 1 and called onSnap
     expect(onSnap).toHaveBeenCalledWith(1);
@@ -270,6 +308,7 @@ describe('BottomSheet Component', () => {
     // Open sheet
     await act(async () => {
       ref.current?.open();
+      await sleep(10);
     });
     expect(onSnap).toHaveBeenLastCalledWith(0);
 
@@ -280,8 +319,8 @@ describe('BottomSheet Component', () => {
     expect(onSnap).toHaveBeenLastCalledWith(1);
   });
 
-  it('applies StyleSheet.absoluteFill to AnimatedTouchableBackdropMask and Backdrop behind position', async () => {
-    const { unmount } = await render(
+  it('applies StyleSheet.absoluteFill to AnimatedTouchableBackdropMask', async () => {
+    await render(
       <AnimatedTouchableBackdropMask
         isPressable={true}
         pressHandler={jest.fn()}
@@ -292,8 +331,9 @@ describe('BottomSheet Component', () => {
     expect(StyleSheet.flatten(mask.props.style)).toMatchObject(
       StyleSheet.absoluteFill
     );
-    unmount();
+  });
 
+  it('applies StyleSheet.absoluteFill to Backdrop behind position', async () => {
     await render(
       <Backdrop
         BackdropComponent={() => <View testID="custom-backdrop-content" />}

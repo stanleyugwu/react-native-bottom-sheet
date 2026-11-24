@@ -6,6 +6,34 @@ export type HookReturn = {
    * Removes all keyboard listeners, typically when sheet is closed
    */
   removeKeyboardListeners: () => void;
+  /**
+   * Focus event handler for sheet content to react immediately when inputs gain focus
+   */
+  handleFocus?: (event?: any) => void;
+  /**
+   * Returns whether the keyboard is currently visible
+   */
+  isKeyboardVisible?: () => boolean;
+  /**
+   * Returns the current keyboard height
+   */
+  getKeyboardHeight?: () => number;
+  /**
+   * Returns the target height calculated for keyboard avoidance
+   */
+  getTargetHeight?: () => number;
+  /**
+   * Notifies keyboard handler that a downward/pan drag has started
+   */
+  notifyDragStart?: () => void;
+  /**
+   * Notifies keyboard handler that a downward/pan drag has ended
+   */
+  notifyDragEnd?: () => void;
+  /**
+   * Resets keyboard tracking state and cancels pending evaluations (e.g. on collapse or close)
+   */
+  resetKeyboardState?: () => void;
 } | null;
 
 /**
