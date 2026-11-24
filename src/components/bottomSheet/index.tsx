@@ -33,8 +33,8 @@ import useAnimatedValue from '../../hooks/useAnimatedValue';
 import useHandleAndroidBackButtonClose from '../../hooks/useHandleAndroidBackButtonClose';
 import useHandleKeyboardEvents from '../../hooks/useHandleKeyboardEvents';
 import convertHeight from '../../utils/convertHeight';
-import resolveSnapPoints from '../../utils/resolveSnapPoints';
 import normalizeHeight from '../../utils/normalizeHeight';
+import resolveSnapPoints from '../../utils/resolveSnapPoints';
 import separatePaddingStyles from '../../utils/separatePaddingStyles';
 import Backdrop from '../backdrop';
 import Container from '../container';
@@ -99,10 +99,24 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         snapToIndex(snapIndex);
       },
       expand() {
-        snapToIndex(_resolvedSnapPoints.length - 1);
+        const hasSnapPoints =
+          Array.isArray(snapPoints) && snapPoints.length > 0;
+        if (hasSnapPoints) {
+          snapToIndex(_resolvedSnapPoints.length - 1);
+        } else {
+          openBottomSheet();
+        }
       },
       collapse() {
-        snapToIndex(0);
+        Keyboard.dismiss();
+        keyboardHandler?.resetKeyboardState?.();
+        const hasSnapPoints =
+          Array.isArray(snapPoints) && snapPoints.length > 0;
+        if (hasSnapPoints) {
+          snapToIndex(0);
+        } else {
+          closeBottomSheet();
+        }
       },
     }));
 
@@ -308,7 +322,13 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       if (view === 'handlebar' && disableDragHandlePanning) return null;
       if (view === 'contentwrapper' && disableBodyPanning) return null;
       return PanResponder.create({
-        onMoveShouldSetPanResponderCapture: (evt) => {
+        onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+          // A vertical drag must have moved more than 5px and have more vertical than horizontal delta
+          const isVerticalDrag =
+            Math.abs(gestureState.dy) > 5 &&
+            Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+          if (!isVerticalDrag) return false;
+
           if (view === 'handlebar') return true;
           const cached = cachedContentWrapperId.current;
           if (!cached) return false; // this signature alone should fix issue #34
@@ -320,15 +340,27 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           );
         },
         onPanResponderGrant: () => {
+          // If keyboard is visible and user drags the sheet, dismiss the keyboard
+          if (keyboardHandler?.isKeyboardVisible?.()) {
+            Keyboard.dismiss();
+          }
           // capture the resting height when the drag starts, so movement is measured
           // relative to it (handles dragging from any snap point or mid-animation)
           // @ts-expect-error private `_value` field (see FIXME above)
           panStartHeight.current = _animatedHeight._value;
         },
         onPanResponderMove: (_, gestureState) => {
-          const lowestSnap = _resolvedSnapPoints[0] ?? 0;
-          const maxSnap =
-            _resolvedSnapPoints[_resolvedSnapPoints.length - 1] ?? 0;
+          const isKbVisible = keyboardHandler?.isKeyboardVisible?.() ?? false;
+          const kbHeight = keyboardHandler?.getKeyboardHeight?.() ?? 0;
+          const minKbHeight = kbHeight > 0 ? kbHeight + 50 : 0;
+
+          const lowestSnap = isKbVisible
+            ? Math.max(_resolvedSnapPoints[0] ?? 0, minKbHeight)
+            : (_resolvedSnapPoints[0] ?? 0);
+          const maxSnap = isKbVisible
+            ? containerHeight
+            : (_resolvedSnapPoints[_resolvedSnapPoints.length - 1] ?? 0);
+
           // clamp between fully closed and the largest snap point
           const next = Math.min(
             Math.max(panStartHeight.current - gestureState.dy, 0),
@@ -342,9 +374,19 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           if (animationType !== ANIMATIONS.FADE) _animatedHeight.setValue(next);
         },
         onPanResponderRelease(_, gestureState) {
-          const lowestSnap = _resolvedSnapPoints[0] ?? 0;
-          const maxSnap =
-            _resolvedSnapPoints[_resolvedSnapPoints.length - 1] ?? 0;
+          const isKbVisible = keyboardHandler?.isKeyboardVisible?.() ?? false;
+          const kbHeight = keyboardHandler?.getKeyboardHeight?.() ?? 0;
+          const kbTarget = keyboardHandler?.getTargetHeight?.() ?? 0;
+          const minKbHeight = kbHeight > 0 ? kbHeight + 50 : 0;
+          const effectiveMinHeight = Math.max(minKbHeight, kbTarget);
+
+          const lowestSnap = isKbVisible
+            ? Math.max(_resolvedSnapPoints[0] ?? 0, effectiveMinHeight)
+            : (_resolvedSnapPoints[0] ?? 0);
+          const maxSnap = isKbVisible
+            ? containerHeight
+            : (_resolvedSnapPoints[_resolvedSnapPoints.length - 1] ?? 0);
+
           const next = Math.min(
             Math.max(panStartHeight.current - gestureState.dy, 0),
             maxSnap
@@ -370,19 +412,24 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           let targetIndex = 0;
           let minDistance = Infinity;
           for (let i = 0; i < _resolvedSnapPoints.length; i++) {
-            const distance = Math.abs(
-              (_resolvedSnapPoints[i] ?? 0) - projected
-            );
+            const snapVal = isKbVisible
+              ? Math.max(_resolvedSnapPoints[i] ?? 0, effectiveMinHeight)
+              : (_resolvedSnapPoints[i] ?? 0);
+            const distance = Math.abs(snapVal - projected);
             if (distance < minDistance) {
               minDistance = distance;
               targetIndex = i;
             }
           }
 
-          Animators.animateHeight(
-            _resolvedSnapPoints[targetIndex] ?? 0,
-            openDuration / 2
-          ).start();
+          const finalTargetHeight = isKbVisible
+            ? Math.max(
+                _resolvedSnapPoints[targetIndex] ?? 0,
+                effectiveMinHeight
+              )
+            : (_resolvedSnapPoints[targetIndex] ?? 0);
+
+          Animators.animateHeight(finalTargetHeight, openDuration / 2).start();
 
           if (targetIndex !== _safeSnapIndex) {
             setActiveSnapIndex(targetIndex);
@@ -482,7 +529,22 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         Math.max(Math.trunc(toIndex), 0),
         _resolvedSnapPoints.length - 1
       );
-      const targetHeight = _resolvedSnapPoints[targetIndex] ?? 0;
+      const isKbVisible =
+        targetIndex === 0
+          ? false
+          : (keyboardHandler?.isKeyboardVisible?.() ?? false);
+      const kbHeight = keyboardHandler?.getKeyboardHeight?.() ?? 0;
+      const kbTarget = keyboardHandler?.getTargetHeight?.() ?? 0;
+      const minKbHeight = kbHeight > 0 ? kbHeight + 50 : 0;
+      const effectiveMinHeight = Math.max(minKbHeight, kbTarget);
+
+      const rawTargetHeight = _resolvedSnapPoints[targetIndex] ?? 0;
+      const targetHeight = isKbVisible
+        ? Math.min(
+            Math.max(rawTargetHeight, effectiveMinHeight),
+            containerHeight
+          )
+        : rawTargetHeight;
       setActiveSnapIndex(targetIndex);
 
       // 1. open container
@@ -566,7 +628,29 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         return;
       }
 
-      const targetHeight = _resolvedSnapPoints[clamped] ?? 0;
+      // Snapping to the collapsed resting point (index 0) dismisses the keyboard
+      // so the sheet can collapse fully without fighting the keyboard.
+      if (clamped === 0 && keyboardHandler?.isKeyboardVisible?.()) {
+        Keyboard.dismiss();
+        keyboardHandler?.resetKeyboardState?.();
+      }
+
+      const isKbVisible =
+        clamped === 0
+          ? false
+          : (keyboardHandler?.isKeyboardVisible?.() ?? false);
+      const kbHeight = keyboardHandler?.getKeyboardHeight?.() ?? 0;
+      const kbTarget = keyboardHandler?.getTargetHeight?.() ?? 0;
+      const minKbHeight = kbHeight > 0 ? kbHeight + 50 : 0;
+      const effectiveMinHeight = Math.max(minKbHeight, kbTarget);
+
+      const rawTargetHeight = _resolvedSnapPoints[clamped] ?? 0;
+      const targetHeight = isKbVisible
+        ? Math.min(
+            Math.max(rawTargetHeight, effectiveMinHeight),
+            containerHeight
+          )
+        : rawTargetHeight;
       // @ts-expect-error private `_value` field (see FIXME above)
       const curHeight = _animatedHeight._value;
 
@@ -691,12 +775,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
            */
           <View
             onLayout={containerViewLayoutHandler}
-            style={{
-              position: 'absolute',
-              height: passedContainerHeight,
-              width: 0,
-              opacity: 0,
-            }}
+            style={[
+              materialStyles.containerMeasurer,
+              { height: passedContainerHeight },
+            ]}
           />
         ) : null}
 
@@ -723,6 +805,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             ref={contentWrapperRef}
             key={'BottomSheetContentContainer'}
             onLayout={cacheElementReference}
+            onFocusCapture={keyboardHandler?.handleFocus}
             /* Merge external and internal styles carefully and orderly */
             style={[
               !modal ? materialStyles.contentContainerShadow : false,
@@ -769,6 +852,11 @@ BottomSheet.displayName = 'BottomSheet';
 BottomSheet.ANIMATIONS = ANIMATIONS;
 
 const materialStyles = StyleSheet.create({
+  containerMeasurer: {
+    position: 'absolute',
+    width: 0,
+    opacity: 0,
+  },
   contentContainer: {
     backgroundColor: '#F7F2FA',
     width: '100%',

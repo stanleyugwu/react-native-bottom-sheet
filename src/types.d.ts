@@ -50,16 +50,17 @@ export interface BottomSheetMethods {
    */
   snapToIndex(index: number): void;
   /**
-   * Animates the bottom sheet to its largest snap point.
+   * Expands the bottom sheet to its largest snap point (`snapToIndex(length - 1)`).
    *
-   * Equivalent to `snapToIndex(snapPoints.length - 1)`. With no `snapPoints`, resolves to
-   * the single `height`.
+   * When `snapPoints` is not provided (using `height` instead), this functions
+   * as `open()`.
    */
   expand(): void;
   /**
-   * Animates the bottom sheet to its smallest snap point.
+   * Animates the bottom sheet to its smallest snap point (`snapToIndex(0)`).
    *
-   * Equivalent to `snapToIndex(0)`. With no `snapPoints`, resolves to the single `height`.
+   * When `snapPoints` is not provided (using `height` instead), this functions
+   * as `close()`.
    */
   collapse(): void;
 }
